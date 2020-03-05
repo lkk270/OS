@@ -10,7 +10,6 @@ using namespace std;
 std::string processes = ""; 
 int n;
 
-
 int main ( int argc, char *argv[] )
 {
     int count = 0;
