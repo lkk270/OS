@@ -39,12 +39,13 @@ int main ( int argc, char *argv[] )
     for(int i = 0; i < processes.size(); i+=4){
         cout<<i;
     }
-    //cout<<'\n';
     cout<< processes;
     cout<<'\n';
     cout<<n;
     cout<<'\n';
-    ///
+    
+
+
 
   
 }
