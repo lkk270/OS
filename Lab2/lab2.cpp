@@ -16,14 +16,69 @@ using namespace std;
 std::string processes = ""; 
 std::string temp = ""; 
 vector<string> nums;
-// int arr [100][4];
-// array<int, 4> arr[3];
 array<int, 4> arr[100];
 int rowIndex = 0;
 int colIndex = 0;
 int n;
 
+void createArray(int argc, char *argv[]);
+void printArray();
+int randomOS(int U);
+
 int main ( int argc, char *argv[] )
+{
+    createArray(argc, argv);
+    printf("The original input was: %d %s", n, "");
+    printArray();
+    sort( arr, arr + n );
+    printf("The (sorted) input is:  %d %s", n, "");
+    printArray();
+    // randomOS(5);
+   
+}
+
+int randomOS(int U){
+    int ret = 0;
+    int x;
+    ifstream inFile;
+    
+    inFile.open("random-numbers");
+    if (!inFile) {
+        cout << "Unable to open file";
+        exit(1); 
+    }
+    
+    while (inFile >> x) {
+        ret = 1 + (x % U);
+        cout<< ret;
+    }
+    
+    inFile.close();
+    return ret;
+
+}
+void printArray(){
+    for(int i = 0; i < n; i++){
+        for(int j = 0; j < 4; j++){
+            if(j== 0){
+                cout<<'(';
+                cout<<arr[i][j];
+                cout<<' ';
+            }
+            else if(j == 3){
+                cout<<arr[i][j];
+                cout<<") ";
+            }
+            else{
+                cout<<arr[i][j];
+                cout<<' ';
+            } 
+        }
+    }
+    printf ("\n");
+}
+
+void createArray(int argc, char *argv[])
 {
     int count = 0;
     if ( argc != 2 ) {
@@ -33,15 +88,12 @@ int main ( int argc, char *argv[] )
         ifstream the_file ( argv[1] );
         if ( !the_file.is_open() ){
             cout<<"Could not open file\n";
-        }
-            
+        }      
         else {
             char x;
             while (the_file.get(x)){
                 if(count == 0){
                     n = x - '0';
-                    cout<<n;
-                    cout<<'\n';
                     array<int, 4> arr[n];
                 }
                 else if(count > 1 && x != '(' && x != ')' && x != ' '){
@@ -61,23 +113,4 @@ int main ( int argc, char *argv[] )
             }      
         }
     }
-    for(int i = 0; i < n; i++){
-        for(int j = 0; j < 4; j++){
-            cout<<arr[i][j];
-            cout<<' ';
-        }
-    }
-    cout<<"\n===================================\n";
-    sort( arr, arr + n );
-
-    for(int i = 0; i < n; i++){
-        for(int j = 0; j < 4; j++){
-            cout<<arr[i][j];
-            cout<<' ';
-        }
-    }
-
-    
-    
-  
 }
