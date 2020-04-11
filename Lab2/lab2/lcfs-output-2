@@ -1,6 +1,5 @@
 The original input was: 2 (0 1 5 1) (0 1 5 1) 
 The (sorted) input is:  2 (0 1 5 1) (0 1 5 1) 
-
 The scheduling algorithm used was Last Come First Served
 
 Process 0:
