@@ -18,60 +18,56 @@ std::string activities = "";
 void collectInput(int argc, char *argv[]);
 void printVector(std::vector<vector<string>> arr);
 std::vector<std::vector<string> > allocateToArray(int num);
+bool is_number(const std::string& s);
 
 int main ( int argc, char *argv[] )
 {
     collectInput(argc, argv);
     int numOfTasks = firstLine[0] - '0';
-    vector<vector<string> > tasks( numOfTasks , vector<string> (4));
+    vector<vector<string> > tasks( numOfTasks , vector<string> (0));
     tasks = allocateToArray(numOfTasks);
-    printVector(tasks);
 }
 
 vector<std::vector<string> > allocateToArray(int numTasks){
     
-    vector<vector<string> > tasks( numTasks , vector<string> (4));
-    std::string word = "";
-    int initiateTaskIndex = -1;
-    int requestIndex = -1;
-    int releaseIndex = -1;
-    int terminateIndex = -1;
-    int whichIndex = 0;
-    int whichTask = 0;
+    vector<vector<string> > tasks( numTasks , vector<string> (0));
+    std::string line = "";
+    int whichTask = -1;
+    int numOfSpaces = 0;
     for(char const &c: activities){
-        int numOfNums = 0;
-       
-        if(word == "initiate"){
-            whichIndex = 0;
-            initiateTaskIndex++;
-            whichTask = initiateTaskIndex;   
-        }
-        else if(word == "request"){
-            whichIndex = 1;
-            requestIndex++;
-            whichTask = requestIndex;
-        }
-        else if(word == "release"){
-            whichIndex = 2;
-            releaseIndex++;
-            whichTask = releaseIndex;
-        }
-        else if(word == "terminate"){
-            whichIndex = 3;
-            terminateIndex++;
-            whichTask = terminateIndex;
-        }
+        line += c;
         if(c== '\n'){
-            tasks[whichTask][whichIndex] = word;
-            word = "";
+            numOfSpaces = 0;
+            std::string wordTemp = "";
+            char charTemp;
+            for(char const &cc: line){
+               
+                wordTemp += cc;
+                if(numOfSpaces > 0 && is_number(wordTemp)){
+                    whichTask = stoi(wordTemp);
+                    tasks[whichTask-1].push_back(line);
+                    break;
+
+                }
+                else if(cc == ' '){
+                    numOfSpaces++;
+                    wordTemp = "";
+                }
+            }
+            line = "";
         }    
-        if (c != '\n'){
-            word += c;
-        } 
+  
     }
+    
     return tasks;
 }
 
+
+bool is_number(const std::string& s)
+{
+    return !s.empty() && std::find_if(s.begin(), 
+        s.end(), [](unsigned char c) { return !std::isdigit(c); }) == s.end();
+}
 
 void printVector(std::vector<vector<string>> tasks){
     for ( const std::vector<string> &v : tasks ){
