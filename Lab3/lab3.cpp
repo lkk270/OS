@@ -211,7 +211,7 @@ int getValue(const std::string& line, int which){
     int ret;
     bool empty = true;
     for(char const &c: line){
-         if(c != '\n' && c != ' '){
+        if(c != '\n' && c != ' '){
             value += c;
         }
         if(value != "initiate" && c == ' ' &&  value != "" && value != "request" && value != "release" && value != "terminate"){
@@ -231,7 +231,7 @@ int getValue(const std::string& line, int which){
     }
 
     if(empty && which == 4){
-        cout<<"hull\n";
+        // cout<<"empty \n";
         return 0;
     }
     else{
@@ -252,12 +252,13 @@ std::string getActivityName(const std::string& line){
     }
 }
 
-std::vector<std::vector<string> >  checkForInitialAbort(std::vector<int> numUnitsPerResourceType, std::vector<vector<string>>& tasks){
+std::pair<std::vector<std::vector<string> >, int>  checkForInitialAbort(std::vector<int> numUnitsPerResourceType, std::vector<vector<string>>& tasks, int& addToNumOfActivitesCompleted){
     for(int i = 0; i < numUnitsPerResourceType.size(); i++){
         for(int j = 0; j < tasks.size(); j++){
             for(int k = 0; k < tasks[j].size(); k++){ 
-                if(getValue(tasks[j][k], 3)> numUnitsPerResourceType[i] && getValue(tasks[j][k], 0) == i+1){
-                    tasks[i].push_back("\nabort");
+                if(getValue(tasks[j][k], 3)> numUnitsPerResourceType[i] && getValue(tasks[j][k], 0) == j+1){
+                    tasks[j].push_back("\nabort");
+                    addToNumOfActivitesCompleted += tasks[j].size() - 2;
                     break;
                 }
                 // tasks[j][k] += "0 ";
@@ -265,7 +266,7 @@ std::vector<std::vector<string> >  checkForInitialAbort(std::vector<int> numUnit
         }
     }
     
-    return tasks;
+    return std::make_pair(tasks,addToNumOfActivitesCompleted);
 
 }
 
@@ -283,107 +284,108 @@ int getTotalNumOfActivities(std::vector<vector<string>>& tasks){
 void bankers(std::vector<vector<string>> tasks, std::vector<int> firstLineArr){
     int numOfTasks = firstLineArr[0];
     int numOfResources = firstLineArr[1];
+    int addToNumOfActivitesCompleted = 0;
     std::vector<int> numUnitsPerResourceType = getNumUnitsPerResourceType(firstLineArr);
     // std::vector<std::vector<int>>  numUnitsAvailablePerTaskPerResourceType = getNumUnitsAvailablePerTaskPerResourceType(numOfTasks, tasks);
    
     std::vector<int> waitingTimePerTask(numOfTasks, 0);
     int next = (numOfTasks > 1 ? 1 : 0);
     int totalNumOfActivities = getTotalNumOfActivities(tasks);
-    int numOfActivitesCompleted = 1;
-    int cycle = 1;
+    
+    int cycle = 0;
     int res = 0;
+    bool cont = true;
     
     // print2dIntVector(numUnitsAvailablePerTaskPerResourceType);
-    checkForInitialAbort(numUnitsPerResourceType, tasks);
-    // while(numOfActivitesCompleted != totalNumOfActivities){
+    checkForInitialAbort(numUnitsPerResourceType, tasks, addToNumOfActivitesCompleted);
+    int numOfActivitesCompleted = numOfTasks + addToNumOfActivitesCompleted;
+    cout<<numOfActivitesCompleted;
+    cout<<"sfsf\n";
+    while(cont && numOfActivitesCompleted != totalNumOfActivities ){
+        cycle++;
         for (int r = 0; r < numOfResources; r++){
             for(int i = 0; i < tasks.size(); i++){
                 next =  (next + 1 <= numOfTasks-1 ? next + 1 : 0);
-                for(int j = 0; j < tasks[i].size(); j++){
-                    printf("%s %d", "task num = ", i);
-                    cout<<"  b\n";
-                    cout<<getValue(tasks[i][j], 4);
-                    cout<<"   d\n";
-                    if(tasks[i][tasks[i].size()-1] != "\nabort" && getValue(tasks[i][j], 4) == 0){
-                        
-                        // // cout<<getValue(tasks[i][j], 2);
-                        // cout<<tasks[i][j];
-                        // cout<<'\n';
-                        // cout<<" ";
-                        res =  getValue(tasks[i][j], 2);
-                        // printf("%d", res);
-                        // cout<<" \n ";
-                        if(r+1 == res){
-                            cout<<"added";
-                        
-                            tasks[i][j] += to_string(cycle);
-                            cout<<tasks[i][j];
-                           
+                if(tasks[i][tasks[i].size()-1] != "\nabort"){
+                    cout<<"i = ";
+                    cout<<i;
+                    cout<<'\n';
+                    for(int j = 0; j < tasks[i].size(); j++){
+                        if(tasks[i][tasks[i].size()-1] != "\nabort" && getValue(tasks[i][j], 4) == 0){
+                            res =  getValue(tasks[i][j], 2);
+                            // printf("%d", res);
+                            // cout<<" \n ";
+                            if(numOfActivitesCompleted == totalNumOfActivities){
+                                cout<<" numOfActivitesCompleted == totalNumOfActivities\n";
+                                cont = false;
+                                break;
+                            }
+                            if(r+1 == res){
+                                if(getActivityName(tasks[i][j]) == "request"){
+                                    tasks[i][j] += to_string(cycle) + " ";
+                                    cycle++;
+                                    numOfActivitesCompleted++;
+                                    break;
+                                }
+                                else{
+                                    cout<<"added";
+                                    tasks[i][j] += to_string(cycle) + " ";
+                                    // cout<<tasks[i][j];
+                                    numOfActivitesCompleted++;
+                                    break;    
+                                }
+                               
+                            }
+                         
+                            
+                            // if(i == numOfTasks-1 && j == tasks[i].size()-1){
+                            //     cycle++;
+                            // }     
+                            cout<<" \n=================\n";
+        
+                                    
                         }
-                        else{
-                            cycle++;
-                        }
-                        numOfActivitesCompleted++;
-                        if(numOfActivitesCompleted == totalNumOfActivities){
-                            cout<<" numOfActivitesCompleted == totalNumOfActivities\n";
-                            break;
-                            // break;
-                            // break;
-                            // break;
-                        }
-                        cout<<" \n=================\n";
-                        // res =  getValue(tasks[i][j], 2);
-                        // cout<<res;
-                        //cout<<" ==\n";
-                        // cout<<"resource num = ";
-                        // cout<<getValue(tasks[i][j], 2);
-                        // cout<<'\n';
-                        // cout<<"r = ";
-                        // cout<<r;
-                        // cout<<' ';
-                        // cout<<numOfActivitesCompleted;
-                        // cout<<' ';
-                        // cout<<totalNumOfActivities;
-                        // cout<<"\n====================\n";
+                       
+                    
                         
-                        
-                        // tasks[i][j] += "89 ";
-                        // cout<<tasks[i][j];
-                        // cout<<getValue(tasks[i][j], 4);
-                        
-                        // cout<<"\n=====================\n";
-                                
+                        // else{
+                        //     cout<<totalNumOfActivities;
+                        //     cout<<' ';
+                        //     cout<<numOfActivitesCompleted;
+                        //     cout<<tasks[i][tasks[i].size()-1];
+                        //     cout<<'\n';
+                        //     printf("%s %d", " cycle",  getValue(tasks[i][j], 4));
+                        //     cout<<'\n';
+                        // }
                     }
-                    // else{
-                    //     cout<<totalNumOfActivities;
-                    //     cout<<' ';
-                    //     cout<<numOfActivitesCompleted;
-                    //     cout<<tasks[i][tasks[i].size()-1];
-                    //     cout<<'\n';
-                    //     printf("%s %d", " cycle",  getValue(tasks[i][j], 4));
-                    //     cout<<'\n';
-                    // }
+                }   
+                if(!cont){
+                        break;
                 }
+                print2dStringVector(tasks);
+                cout<< "numOfActivitesCompleted = ";
+                cout<<numOfActivitesCompleted;
+                cout<<'\n';
+                cout<< "totalNumOfActivities = ";
+                cout<<totalNumOfActivities;
+                cout<<'\n';
 
 
             //keep track of each execution - add cycle count to each execution
             //need function that updates tasks arr with cycle count for each activity
             }
+            if(!cont){
+                break;
+            }
         }
 
-    // }
+    }
     
 
     //0 = task number, 1 = delay, 2 = resource-type, 3 = number-requested (units), 4 = cycle
    
     print2dStringVector(tasks);
     // print2dIntVector(numUnitsAvailablePerTaskPerResourceType);
-    // cout<<numUnitsAvailablePerTaskPerResourceType.size();
-    // cout<<'\n';
-    // cout<<numUnitsAvailablePerTaskPerResourceType[0].size();
-    // checkForInitialAbort(numUnitsPerResourceType, numUnitsAvailablePerTaskPerResourceType, tasks);
-   
-    // cout<<numOfResources;
     cout<<'\n';
     print1dIntVector(numUnitsPerResourceType);
     cout<<'\n';
