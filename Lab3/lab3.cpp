@@ -4,7 +4,6 @@
 #include <vector>
 #include <ctype.h>
 #include <fstream>
-
 #include <iomanip>
 #include <cstring>
 #include <cstdio>
@@ -40,7 +39,6 @@ int main ( int argc, char *argv[] )
 
 
 std::vector<std::vector<string> > allocateToArray(int numTasks){
-    
     std::vector<vector<string> > tasks( numTasks , vector<string> (0));
     std::string line = "";
     int whichTask = -1;
@@ -75,8 +73,7 @@ std::vector<std::vector<string> > allocateToArray(int numTasks){
 }
 
 
-bool is_number(const std::string& s)
-{
+bool is_number(const std::string& s){
     return !s.empty() && std::find_if(s.begin(), 
         s.end(), [](unsigned char c) { return !std::isdigit(c); }) == s.end();
 }
@@ -106,8 +103,7 @@ void print1dIntVector(std::vector<int> arr){
 }
 
 
-void collectInput(int argc, char *argv[])
-{
+void collectInput(int argc, char *argv[]){
     int count = 0;
     if ( argc != 2 ) {
          cout<<"usage: "<< argv[0] <<" <filename>\n";
@@ -229,10 +225,8 @@ std::pair<std::vector<std::vector<string> >, int>  checkForInitialAbort(std::vec
                 // tasks[j][k] += "0 ";
             }
         }
-    }
-    
+    } 
     return std::make_pair(tasks,addToNumOfActivitesCompleted);
-
 }
 
 
@@ -246,36 +240,6 @@ int getTotalNumOfActivities(std::vector<vector<string>> tasks){
     return ret;
 }
 
-// std::pair<std::vector<int>, std::vector<vector<int>> > initializeNumUnitsPerResourceTypeRemaining(std::vector<int>& numUnitsPerResourceTypeRemaining, std::vector<vector<int>>& numUnitsPerResourceTypePerTaskRemaining, std::vector<vector<string>> tasks){
-//     int count = 0;
-//     for(int i = 0; i < tasks.size(); i++){
-//         for(int j = 0; j < tasks[i].size(); j++){
-//             if(getActivityName(tasks[i][j]) == "initiate"){
-//                 // tasks[i][j] += "1 ";
-//                 numUnitsPerResourceTypePerTaskRemaining[i].push_back(getValue(tasks[i][j], 3));
-//                 if(getValue(tasks[i][j], 2) - 1 == count){
-//                     numUnitsPerResourceTypeRemaining[getValue(tasks[i][j], 2) - 1] -= getValue(tasks[i][j], 3);
-//                     count++;
-//                 }
-//             }
-//         }
-//     }
-//      return std::make_pair(numUnitsPerResourceTypeRemaining, numUnitsPerResourceTypePerTaskRemaining);
-// }
-
-
-
-// std::vector<vector<int>> initializeNumUnitsPerResourceTypeUsed(std::vector<vector<int>>& numUnitsPerResourceTypePerTaskUsed, std::vector<vector<string>> tasks){
-//     for(int i = 0; i < tasks.size(); i++){
-//         for(int j = 0; j < tasks[i].size(); j++){
-//             if(getActivityName(tasks[i][j]) == "initiate"){
-//                numUnitsPerResourceTypePerTaskUsed[i].push_back(0);
-//             }
-//         }
-//     }
-//      return numUnitsPerResourceTypePerTaskUsed;
-// }
-
 
 std::pair<int, std::vector<vector<string>> > getNumOfInitiates(std::vector<vector<string>>& tasks){
     int additional = 0;
@@ -288,8 +252,8 @@ std::pair<int, std::vector<vector<string>> > getNumOfInitiates(std::vector<vecto
         }
     }
     return std::make_pair(additional, tasks);  
-    
 }
+
 
 std::vector<int> getNumTasksValidForStart(std::vector<int>& checkIfValid,  std::vector<vector<string>> tasks){
     int count = 0;
@@ -316,6 +280,7 @@ std::vector<int> getNumTasksValidForStart(std::vector<int>& checkIfValid,  std::
     return checkIfValid;
 }
 
+
 std::vector<int> initializeBlocked(std::vector<int> checkIfValid,  std::vector<vector<string>> tasks){
     std::vector<int> blocked;
     int count = 0;
@@ -324,60 +289,6 @@ std::vector<int> initializeBlocked(std::vector<int> checkIfValid,  std::vector<v
     }
     return blocked;
 }
-
-// std::vector<int> initializeOrder(int numOfTasks){
-//     std::vector<int> order;
-//     for(int i = 0; i < numOfTasks; i++){
-//         order.push_back(i);
-//     }
-//     return order;
-// }
-
-// std::vector<int> removeFromIntArray(std::vector<int> arr, int task){
-//     for(int i = 0; i < arr.size(); i++){
-//         if(arr[i] == task){
-//             arr.erase(arr.begin() + i);
-//         }
-//     }
-
-//  return arr;
-// }
-
-// std::vector<int> changeOrder(std::vector<int> order, int task){
-//     std::vector<int> order2;
-
-//     for(int i = 0; i < order.size(); i++){
-//         if(order[i] != task){
-//             order.erase(order.begin() + i);
-//         }
-//     }
-
-
-    
-//     order2.push_back(task);
-    
-//     for(int i = 0; i < order.size(); i++){
-//          if(order[i] == i){
-//             order2.push_back(order[i]);
-//         }
-
-//     }
-//     return order2;
-// }
-
-// std::vector<int> initializeDelaysPerTask2(std::vector<vector<string>> tasks, std::vector<int> blocked){
-//     std::vector<int> delaysPerTask(tasks.size());
-//     for(int i = 0; i < blocked.size(); i++){
-//         for(int j = 0; j < tasks[blocked[i]].size(); j++){
-//             if(getActivityName(tasks[blocked[i]][j]) == "request"){
-//                 delaysPerTask[blocked[i]] = getValue(tasks[blocked[i]][j], 1);
-//                 break;
-//             }
-//         }
-//     }
-//     return delaysPerTask;
-// }
-
 
 
 std::pair<std::vector<int> , std::vector<string> > initializeDelaysPerTask(std::vector<vector<string>> tasks, std::vector<string>& delayedTasks){
@@ -394,6 +305,7 @@ std::pair<std::vector<int> , std::vector<string> > initializeDelaysPerTask(std::
     }
     return std::make_pair(delaysPerTask, delayedTasks);
 }
+
 
 int getTrueSizeOfBlocked(std::vector<int> blocked){
     int ret = 0;
@@ -412,9 +324,9 @@ float calculateWaitingTime(std::vector<vector<string>> tasks, int taskIndex){
     for(int j = 0; j < tasks[taskIndex].size(); j++){
         valueIfNoWait += getValue(tasks[taskIndex][j], 1);
     }
-
     return float(getValue(tasks[taskIndex][tasks[taskIndex].size() - 1], 4) - valueIfNoWait);
 }
+
 
 void printBankers(std::vector<vector<string>> tasks){
     float totalTime = 0.0;
@@ -443,8 +355,6 @@ void printBankers(std::vector<vector<string>> tasks){
     std:: cout << "total " << "        " << to_string(int(totalTime)) << "   " << to_string(int(totalWaitTime)) << "  " << to_string(percentage) << "%";
     cout<<'\n';
 }
-
-
 
 
 void bankers(std::vector<vector<string>> tasks, std::vector<int> firstLineArr){
@@ -629,13 +539,10 @@ void bankers(std::vector<vector<string>> tasks, std::vector<int> firstLineArr){
         }
        
     }
-
-
     //0 = task number, 1 = delay, 2 = resource-type, 3 = number-requested (units), 4 = cycle
     cout<<"        BANKER'S\n";
     printBankers(tasks);
-
-    
+   
 }
 
 
