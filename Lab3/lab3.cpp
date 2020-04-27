@@ -4,13 +4,14 @@
 #include <vector>
 #include <ctype.h>
 #include <fstream>
-
 #include <iomanip>
 #include <cstring>
 #include <cstdio>
 #include <cstdlib>
-#include <array>
+// #include <array>
 #include<string.h>
+#include <algorithm>
+#include <math.h>   
 
 using namespace std;
 
@@ -31,20 +32,13 @@ int main ( int argc, char *argv[] )
     vector<int> firstLineArr = allocateFirstLineToArray();
     vector<vector<string> > tasks( firstLineArr[0] , vector<string> (0));
     tasks = allocateToArray(firstLineArr[0]);
-    // print1dIntVector(firstLineArr);
-    // // cout<<tasks[1 ].size();
-    // cout<<'\n';
-    // print2dStringVector(tasks);
-    // cout<<'\n';
+
     bankers(tasks, firstLineArr);
-    // cout<<'\n';
-    // cout<<'\n';
-    // cout<<tasks[0][9];
 
 }
 
+
 std::vector<std::vector<string> > allocateToArray(int numTasks){
-    
     std::vector<vector<string> > tasks( numTasks , vector<string> (0));
     std::string line = "";
     int whichTask = -1;
@@ -52,7 +46,6 @@ std::vector<std::vector<string> > allocateToArray(int numTasks){
     for(char const &c: activities){
         
         if(c== '\n'){
-            // line += " ";
             numOfSpaces = 0;
             std::string wordTemp = "";
             char charTemp;
@@ -80,11 +73,11 @@ std::vector<std::vector<string> > allocateToArray(int numTasks){
 }
 
 
-bool is_number(const std::string& s)
-{
+bool is_number(const std::string& s){
     return !s.empty() && std::find_if(s.begin(), 
         s.end(), [](unsigned char c) { return !std::isdigit(c); }) == s.end();
 }
+
 
 void print2dStringVector(std::vector<vector<string>> tasks){
     for ( const std::vector<string> &v : tasks ){
@@ -93,12 +86,14 @@ void print2dStringVector(std::vector<vector<string>> tasks){
     }
 }
 
+
 void print2dIntVector(std::vector<vector<int>> nums){
     for ( const std::vector<int> &v : nums ){
         for ( int x : v ) std::cout << x << ' ';
             std::cout << std::endl;
     }
 }
+
 
 void print1dIntVector(std::vector<int> arr){
     for (auto i = arr.begin(); i != arr.end(); ++i)
@@ -108,8 +103,7 @@ void print1dIntVector(std::vector<int> arr){
 }
 
 
-void collectInput(int argc, char *argv[])
-{
+void collectInput(int argc, char *argv[]){
     int count = 0;
     if ( argc != 2 ) {
          cout<<"usage: "<< argv[0] <<" <filename>\n";
@@ -136,6 +130,7 @@ void collectInput(int argc, char *argv[])
     }
 }
 
+
 std::vector<int > allocateFirstLineToArray(){
     vector<int> ret;
     for(char const &c: firstLine){
@@ -144,55 +139,7 @@ std::vector<int > allocateFirstLineToArray(){
         }
     }
     return ret;
-
-
 }
-
-// std::vector<std::vector<int> > getNumUnitsAvailablePerTaskPerResourceType(int numOfTasks, std::vector<vector<string>> tasks){
-//     bool init = false;
-//     std::string which = "";
-//     std::string value = "";
-//     int count = 0;
-//     std::vector<std::vector<int>>  numUnitsAvailablePerTaskPerResourceType(numOfTasks, std::vector<int>(0));
-
-//     for(int i = 0; i < numOfTasks; i++){
-//         for(int j = 0; j < tasks[i].size(); j++){
-//             init = false;
-//             which = "";
-//             for(char const &c: tasks[i][j]){
-//                 which += c;
-//                 if(which == "initiate"){
-//                     init = true;
-//                 }     
-//             }
-//             if(init){
-//                 value = "";
-//                 count = 0;
-//                 for(char const &c: which){
-//                     if(c != '\n' && c != ' '){
-//                         value += c;
-//                     }
-//                     if(value != "initiate" && c == ' ' && value != ""){
-//                         if(count == 3){
-//                             numUnitsAvailablePerTaskPerResourceType[i].push_back(stoi(value));
-//                             value = "";
-//                         }
-//                         else{
-//                             count++;
-//                             value = "";
-//                         }
-                        
-//                     } 
-//                     else if(value == "initiate" || c == ' '){
-//                         value = "";
-//                     }
-//                 }
-//             }
-//         }
-//     }
-
-//     return numUnitsAvailablePerTaskPerResourceType;
-// }
 
 
 std::vector<int> getNumUnitsPerResourceType(std::vector<int> firstLineArr){
@@ -204,6 +151,7 @@ std::vector<int> getNumUnitsPerResourceType(std::vector<int> firstLineArr){
 
     return numUnitsPerResourceType;
 }
+
 
 int getValue(const std::string& line, int which){
     std::string value = "";
@@ -231,7 +179,6 @@ int getValue(const std::string& line, int which){
     }
 
     if(empty && which == 4){
-        // cout<<"empty \n";
         return 0;
     }
     else{
@@ -239,6 +186,7 @@ int getValue(const std::string& line, int which){
     }
     
 }
+
 
 std::string getActivityName(const std::string& line){
     std::string value = "";
@@ -250,28 +198,39 @@ std::string getActivityName(const std::string& line){
            return value;
         }
     }
+    return "";
 }
+
+
+int getNumOfInitiatesForGivenTask(std::vector<vector<string>> tasks, int taskIndex){
+    int ret = 0;
+    for(int i = 0; i < tasks[taskIndex].size(); i++){
+        if(getActivityName(tasks[taskIndex][i]) == "initiate"){
+            ret++;
+        }
+    }
+    return ret;
+}
+
 
 std::pair<std::vector<std::vector<string> >, int>  checkForInitialAbort(std::vector<int> numUnitsPerResourceType, std::vector<vector<string>>& tasks, int& addToNumOfActivitesCompleted){
     for(int i = 0; i < numUnitsPerResourceType.size(); i++){
         for(int j = 0; j < tasks.size(); j++){
             for(int k = 0; k < tasks[j].size(); k++){ 
                 if(getValue(tasks[j][k], 3)> numUnitsPerResourceType[i] && getValue(tasks[j][k], 0) == j+1){
+                    addToNumOfActivitesCompleted += (tasks[j].size() - 1 - getNumOfInitiatesForGivenTask(tasks, j));
                     tasks[j].push_back("\nabort");
-                    addToNumOfActivitesCompleted += tasks[j].size() - 2;
                     break;
                 }
                 // tasks[j][k] += "0 ";
             }
         }
-    }
-    
+    } 
     return std::make_pair(tasks,addToNumOfActivitesCompleted);
-
 }
 
 
-int getTotalNumOfActivities(std::vector<vector<string>>& tasks){
+int getTotalNumOfActivities(std::vector<vector<string>> tasks){
     int ret = 0;
     for(int i = 0; i < tasks.size(); i++){
         for(int j = 0; j < tasks[i].size(); j++){
@@ -281,37 +240,20 @@ int getTotalNumOfActivities(std::vector<vector<string>>& tasks){
     return ret;
 }
 
-std::pair<std::vector<int>, std::vector<vector<int>> > initializeNumUnitsPerResourceTypeRemaining(std::vector<int>& numUnitsPerResourceTypeRemaining, std::vector<vector<int>>& numUnitsPerResourceTypePerTaskRemaining, std::vector<vector<string>> tasks){
-    int count = 0;
+
+std::pair<int, std::vector<vector<string>> > getNumOfInitiates(std::vector<vector<string>>& tasks){
+    int additional = 0;
     for(int i = 0; i < tasks.size(); i++){
-        for(int j = 0; j < tasks[i].size(); j++){
+        for(int j = 0; j < tasks[i].size() - 1; j++){
             if(getActivityName(tasks[i][j]) == "initiate"){
-                // tasks[i][j] += "1 ";
-                numUnitsPerResourceTypePerTaskRemaining[i].push_back(getValue(tasks[i][j], 3));
-                if(getValue(tasks[i][j], 2) - 1 == count){
-                    numUnitsPerResourceTypeRemaining[getValue(tasks[i][j], 2) - 1] -= getValue(tasks[i][j], 3);
-                    count++;
-                }
+                tasks[i][j] +=  to_string(j+1) + " ";
+                additional++;
             }
         }
     }
-     return std::make_pair(numUnitsPerResourceTypeRemaining, numUnitsPerResourceTypePerTaskRemaining);
+    return std::make_pair(additional, tasks);  
 }
 
-
-//may need to redesign above function to subtract by largest val
-
-
-std::vector<vector<int>> initializeNumUnitsPerResourceTypeUsed(std::vector<vector<int>>& numUnitsPerResourceTypePerTaskUsed, std::vector<vector<string>> tasks){
-    for(int i = 0; i < tasks.size(); i++){
-        for(int j = 0; j < tasks[i].size(); j++){
-            if(getActivityName(tasks[i][j]) == "initiate"){
-               numUnitsPerResourceTypePerTaskUsed[i].push_back(0);
-            }
-        }
-    }
-     return numUnitsPerResourceTypePerTaskUsed;
-}
 
 std::vector<int> getNumTasksValidForStart(std::vector<int>& checkIfValid,  std::vector<vector<string>> tasks){
     int count = 0;
@@ -338,311 +280,269 @@ std::vector<int> getNumTasksValidForStart(std::vector<int>& checkIfValid,  std::
     return checkIfValid;
 }
 
+
+std::vector<int> initializeBlocked(std::vector<int> checkIfValid,  std::vector<vector<string>> tasks){
+    std::vector<int> blocked;
+    int count = 0;
+    for(int i = checkIfValid[0]; i < tasks.size(); i++){
+        blocked.push_back(i);
+    }
+    return blocked;
+}
+
+
+std::pair<std::vector<int> , std::vector<string> > initializeDelaysPerTask(std::vector<vector<string>> tasks, std::vector<string>& delayedTasks){
+    std::vector<int> delaysPerTask(tasks.size());
+    for(int i = 0; i < tasks.size(); i++){
+        for(int j = 0; j < tasks[i].size(); j++){
+            if(getValue(tasks[i][j], 4) == 0){
+                std::string delayedIndex = to_string(i) + "-" + to_string(j);
+                delaysPerTask[i] = getValue(tasks[i][j], 1);
+                delayedTasks.push_back(delayedIndex);
+                break;
+            }
+        }
+    }
+    return std::make_pair(delaysPerTask, delayedTasks);
+}
+
+
+int getTrueSizeOfBlocked(std::vector<int> blocked){
+    int ret = 0;
+    for(int i = 0; i < blocked.size(); i++){
+        if(blocked[i] != -1){
+            ret++;
+        }
+    }
+    return ret;
+}
+
+
+float calculateWaitingTime(std::vector<vector<string>> tasks, int taskIndex){
+    float finalTime = getValue(tasks[taskIndex][tasks[taskIndex].size() - 1 ], 4);
+    float valueIfNoWait = tasks[taskIndex].size() - 1;
+    for(int j = 0; j < tasks[taskIndex].size(); j++){
+        valueIfNoWait += getValue(tasks[taskIndex][j], 1);
+    }
+    return float(getValue(tasks[taskIndex][tasks[taskIndex].size() - 1], 4) - valueIfNoWait);
+}
+
+
+void printBankers(std::vector<vector<string>> tasks){
+    float totalTime = 0.0;
+    float totalWaitTime = 0.0;
+    float waitTime = 0.0;
+    float endTime = 0.0;
+    for(int i = 0; i < tasks.size(); i++){
+        std:: cout << "Task " << i << "        ";
+        if(tasks[i][tasks[i].size()-1] == "\nabort"){
+            std::cout << "aborted";
+        }
+        else{
+            waitTime = calculateWaitingTime(tasks, i);
+            totalWaitTime+=waitTime;
+            endTime =  getValue(tasks[i][tasks[i].size()-1], 4);
+            totalTime+=  endTime;
+            int percentage= round(100 * (waitTime / endTime));
+            std::cout << getValue(tasks[i][tasks[i].size()-1], 4) << "   " << to_string(int(waitTime)) << "  " << to_string(percentage) << "%";;
+        }
+
+    cout<<'\n';
+ 
+    }
+   
+    int percentage= round(100 * (totalWaitTime / totalTime));
+    std:: cout << "total " << "        " << to_string(int(totalTime)) << "   " << to_string(int(totalWaitTime)) << "  " << to_string(percentage) << "%";
+    cout<<'\n';
+}
+
+
 void bankers(std::vector<vector<string>> tasks, std::vector<int> firstLineArr){
     int numOfTasks = firstLineArr[0];
     int numOfResources = firstLineArr[1];
     int addToNumOfActivitesCompleted = 0;
     std::vector<int> numUnitsPerResourceType = getNumUnitsPerResourceType(firstLineArr);
-    // std::vector<std::vector<int>>  numUnitsAvailablePerTaskPerResourceType = getNumUnitsAvailablePerTaskPerResourceType(numOfTasks, tasks);
     std::vector<int> numUnitsPerResourceTypeRemaining = numUnitsPerResourceType;
-    
-    std::vector<int> waitingTimePerTask(numOfTasks, 0);
-    std::vector<int> numUnitsPerResourceTypeUsed(numOfTasks, 0);
-    int next = (numOfTasks > 1 ? 1 : 0);
     int totalNumOfActivities = getTotalNumOfActivities(tasks) - numOfTasks;
-    std::vector<vector<int>> numUnitsPerResourceTypePerTaskRemaining( numOfTasks , vector<int> (0));
-    std::vector<vector<int>> numUnitsPerResourceTypePerTaskUsed( numOfTasks , vector<int> (0));
-    int cycle = 1;
+    std::vector<vector<int>> numUnitsPerResourceTypePerTaskUsed( numOfTasks , vector<int> (numOfResources));
+    int cycle = numOfResources;
     int res = 0;
     bool cont = true;
-    printf("%s" "%d", "num of resources ", numOfResources);
-    cout<<'\n';
-    
+    int count = -1;
     bool endTask = false;
     checkForInitialAbort(numUnitsPerResourceType, tasks, addToNumOfActivitesCompleted);
-    initializeNumUnitsPerResourceTypeRemaining(numUnitsPerResourceTypeRemaining, numUnitsPerResourceTypePerTaskRemaining, tasks);
     std::vector<int> checkIfValid = numUnitsPerResourceTypeRemaining;
     getNumTasksValidForStart(checkIfValid, tasks);
-    initializeNumUnitsPerResourceTypeUsed(numUnitsPerResourceTypePerTaskUsed, tasks);
-    // cout<<"done: ";
-    // print1dIntVector(numUnitsPerResourceTypeRemaining);
-    // cout<<'\n';
-    int numOfActivitesCompleted = numOfTasks + addToNumOfActivitesCompleted;
-    // cout<<numOfActivitesCompleted;
-    // cout<<"sfsf\n";
-    // print2dStringVector(tasks);
-    // cout<<'\n';
-    // // print2dIntVector(numUnitsPerResourceTypePerTaskRemaining);
-    // cout<<"\n===========\n\n\n";
     int numOfActivitesPerTask = 0;
-    print1dIntVector(numUnitsPerResourceType);
+    int numOfCompletedTasks = 0;
+    int numOfCompletedTasksTemp = 0;
+    std::vector<int> blocked = initializeBlocked(checkIfValid, tasks);
+    std::vector<int> delaysPerTask(numOfTasks);
+    std::vector<string> activityNamePerDelayedTask(numOfTasks);
+    int numOfActivitesCompleted = addToNumOfActivitesCompleted + getNumOfInitiates(tasks).first;
+    bool parseBlocked = true;
+    int blockedSizeTemp = blocked.size();
+    std::vector<string> delayedTasks;
+    bool justDecreasedDelays = false;
     while(cont && numOfActivitesCompleted != totalNumOfActivities ){
+        count++;
         cycle++;
-        // cout<<"HULLLLLO";
-        for (int r = 0; r < numOfResources; r++){
-            // cycle++;
-            for(int i = 0; i < tasks.size(); i++){
-                numOfActivitesPerTask = 0;
-                endTask = false;
-                next =  (next + 1 <= numOfTasks-1 ? next + 1 : 0);
-                if(i == tasks.size()){
-                    cout<<"yas qene";
-                    cycle++;
+        parseBlocked = true;
+        justDecreasedDelays = false;
+        if(count > 0 && getTrueSizeOfBlocked(blocked) > 0 ){
+            for(int d = 0; d < delaysPerTask.size(); d++){
+                if(delaysPerTask[d] != 0){
+                    delaysPerTask[d] -= 1;
+                    justDecreasedDelays = true;
+
                 }
-                
-                if(tasks[i][tasks[i].size()-1] != "\nabort"){
-                    // cout<<"i = ";
-                    // cout<<i;
-                    // cout<<'\n';
-                    for(int j = 1; j < tasks[i].size(); j++){
-                        
-                        if(tasks[i][tasks[i].size()-1] != "\nabort" && getValue(tasks[i][j], 4) == 0){
-                            res =  getValue(tasks[i][j], 2);
-                            // printf("%d", res);
-                            // cout<<" \n ";
-                            if(numOfActivitesCompleted == totalNumOfActivities){
-                                cout<<" numOfActivitesCompleted == totalNumOfActivities\n";
-                                cont = false;
-                                break;
-                            }
-                            // if(0 == getValue(tasks[i][j-1], 4)){
-                            //     cout<<"cycle same";
-                            //     break;
-                            // }
-                            if(r+1 == res){
-                                // printf("%s" "%d", "iiii:  ", i);
-                               
-                                // cout<<"\n&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n";
-                                // cout<<getActivityName(tasks[i][j-1]);
-                                // cout<<"\n";
-                                // cout<<getValue(tasks[i][j-1], 4);
-                                // cout<<"\n&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n";
-                                if(getActivityName(tasks[i][j]) == "request" && getValue(tasks[i][j], 3) <= numUnitsPerResourceType[getValue(tasks[i][j], 2) - 1]){  
-                                    if((getActivityName(tasks[i][j-1]) != "initiate" && getValue(tasks[i][j-1], 4) == 0)){
-                                        cout<<"PLEASE";
+            }
+        }
+        if(count > 0 && parseBlocked){
+            for(int b = 0; b < blocked.size(); b++){
+                if(blocked[b] != -1){
+                    if(tasks[blocked[b]][tasks[blocked[b]].size()-1] != "\nabort"){         
+                        for(int t = 1; t < tasks[blocked[b]].size() - 1; t++){               
+                            if(getValue(tasks[blocked[b]][t], 4) == 0){
+                                if(getActivityName(tasks[blocked[b]][t]) == "request"){
+                                    if(getActivityName(tasks[blocked[b]][t-1]) != "initiate" && getValue(tasks[blocked[b]][t-1], 4) == 0){
                                         break;
                                     }
+                                    if((getValue(tasks[blocked[b]][t], 3) <=  numUnitsPerResourceType[getValue(tasks[blocked[b]][t], 2) - 1]) && (blockedSizeTemp + 1 == blocked.size()|| numOfCompletedTasksTemp + 1 ==  numOfCompletedTasks)){
+                                        blocked[b] = -1;
+                                        parseBlocked = false;
+                                        break;
 
-                                    // if((i > 0 && numUnitsPerResourceTypePerTaskRemaining[i][getValue(tasks[i][j], 2)- 1] >= numUnitsPerResourceType[r])){
-                                    //     cout<<"DA FUC2";
-                                    //     break;
-                                    //     // 
-                                    //     // break;
-                                    // }
-                                
-                                    // if(i > checkIfValid[getValue(tasks[i][j], 2) - 1] )
-                                    cout<<'\n';
-                                    cout<<i;
-                                    cout<<'\n';
-                                    cout<<checkIfValid[getValue(tasks[i][j], 2) - 1];
-                                    cout<<'\n';
-                                    cout<<getValue(tasks[i][j], 4);
-                                    if(i > 0){
-                                        if(i > checkIfValid[getValue(tasks[i][j], 2) - 1] && getValue(tasks[i-1][tasks[i-1].size() - 2], 4) == 0){
-                                            cout<<"PLEASE WORK BItCH";
-                                            break;
-                                        }
-                                        if(cycle == getValue(tasks[i-1][tasks[i-1].size() - 2], 4) ){
-                                                cycle++;
-                                            }
                                     }
-                                    
-                                    // cout<<"\n================\n";
-                                    cout<<"\nadded1\n";
-                                    // cout<<numUnitsPerResourceTypeRemaining[getValue(tasks[i][j], 2) - 1];
-                                    // cout<<'\n';
-                                    // cout<<getValue(tasks[i][j], 3);
-                                    // cout<<"\n================\n";
-                                    // // if()
-                                    // if(i == 0){
-                                    //     tasks[i][j] += to_string(cycle) + " ";
-                                    // }
-                                    tasks[i][j] += to_string(cycle) + " ";
-                                    
-                                    // cout<<"NUMDFDFDFDF: getValue(tasks[i][j], 3) + nnumUnitsPerResourceTypeUsed[i][getValue(tasks[i][j], 2) - 1]:   ";
-                                    // cout<<getValue(tasks[i][j], 3) + numUnitsPerResourceTypeUsed[getValue(tasks[i][j], 2) - 1];
-                                    // cout<<'\n';
-                                    // cout<<"numUnitsPerResourceTypePerTaskRemaining[i][getValue(tasks[i][j], 2)] - 1):  ";
-                                    // cout<<numUnitsPerResourceTypePerTaskRemaining[i][getValue(tasks[i][j], 2)- 1];
-                                    // cout<<'\n';
-                                    // cout<<"r num ";
-                                    // cout<<getValue(tasks[i][j], 2) - 1;
-                                    // cout<<'\n';
-                                    
-                                    // if(getValue(tasks[i][j], 3) + numUnitsPerResourceTypeUsed[getValue(tasks[i][j], 2) - 1] <= numUnitsPerResourceTypePerTaskRemaining[i][getValue(tasks[i][j], 2) -1 ]){
-                                    //     cout<<"UDFDFDF";
-                                    //     break;
-                                       
-                                    // // }
-                                    // if(numUnitsPerResourceTypeRemaining[getValue(tasks[i][j], 2) - 1] - getValue(tasks[i][j], 3) < 0 && i != 0){
-                                    //     cout<<"TYRIAN\n";
-                                    //     cout<<numUnitsPerResourceTypeRemaining[getValue(tasks[i][j], 2) - 1];
-                                    //     cout<<'\n';
-                                    //     cout<<getValue(tasks[i][j], 3);
-                                    //     cout<<'\n';
-                                    //     print1dIntVector(numUnitsPerResourceTypeRemaining);
-                                    //     break;
-                                    //     // break;
-                                    // }
-                                    numUnitsPerResourceTypeRemaining[getValue(tasks[i][j], 2) - 1] -= getValue(tasks[i][j], 3);
-                                    numUnitsPerResourceTypeUsed[getValue(tasks[i][j], 2) - 1] += getValue(tasks[i][j], 3);
-                                    numUnitsPerResourceType[getValue(tasks[i][j], 2) - 1] -= getValue(tasks[i][j], 3);
-                                    numOfActivitesCompleted++;
-                                    numOfActivitesPerTask++;
-                                    if(numUnitsPerResourceTypeRemaining[getValue(tasks[i][j], 2) - 1] != 0){
-                                         numUnitsPerResourceTypeUsed[getValue(tasks[i][j], 2) - 1] -= getValue(tasks[i][j], 3);
-                                    }
-                                    break;
-
-                                  
-                                  
-
-                                    // else if(i == tasks.size() - 1 || numOfActivitesPerTask == 1){
-                                    //     cycle++;
-                                    //     break;    
-                                    //     // cycle++;
-                                    //     // cout<<"DA FUC\n ";
-                                    //     // cout<<i;
-                                    //     // cout<<'\n';
-                                    //     // cout<<"numUnitsPerResourceTypePerTaskRemaining[i][getValue(tasks[i][j], 2)- 1] ";
-                                    //     // cout<<numUnitsPerResourceTypePerTaskRemaining[i][getValue(tasks[i][j], 2)- 1];
-                                    //     // cout<<'\n';
-                                    //     // cout<<"numUnitsPerResourceType[res] ";
-                                    //     // cout<<numUnitsPerResourceType[r];
-                                    //     // cout<<"\n============\n";
-                                        
-                                   
-                                    // }
-                                     
-                                 
-
-                                }
-                                //  if(){
-                                //     break;
-                                // }
-
-                                if(getActivityName(tasks[i][j]) == "release" ){
-                                    if((getActivityName(tasks[i][j-1]) != "initiate" && getValue(tasks[i][j-1], 4) == 0)){
-                                        cout<<"PLEASE";
+                                    else{
                                         break;
                                     }
-                                   if(i > 0){
-                                        if(i > checkIfValid[getValue(tasks[i][j], 2) - 1] && getValue(tasks[i-1][tasks[i-1].size() - 2], 4) == 0){
-                                            cout<<"PLEASE WORK BItCH";
-                                            break;
-                                        }
-                                      
-                                      
-                                        
-                                        
-                                    }
-                                
-                                    cout<<'\n';
-                                    cout<<i;
-                                    cout<<'\n';
-                                    cout<<checkIfValid[getValue(tasks[i][j], 2) - 1];
-                                    cout<<'\n';
-                                    cout<<getValue(tasks[i][j], 4);
-                                    cout<<"releaseadded";
-                                    tasks[i][j] += to_string(cycle) + " ";
-                                    numUnitsPerResourceTypeRemaining[getValue(tasks[i][j], 2) - 1] += getValue(tasks[i][j], 3);
-                                    numUnitsPerResourceTypeUsed[getValue(tasks[i][j], 2) - 1] -= getValue(tasks[i][j], 3);
-                                    numUnitsPerResourceType[getValue(tasks[i][j], 2) - 1] += getValue(tasks[i][j], 3);
-                                    numOfActivitesCompleted++;
-                                    numOfActivitesPerTask++;
-                                    break;
-                                    // if(i == tasks.size() - 1 || numOfActivitesPerTask == 1){
-                                    //     cout<<"DA FUC3";
-                                    //     cycle++;
-                                    // }
-
-                                    if(i == 0){
-                                         if(i + 1 > checkIfValid[getValue(tasks[i+1][j], 2) - 1] && getValue(tasks[i][tasks[i].size() - 2], 4) != 0){
-                                             cycle++;
-
-                                         }
-
-                                    }
-
-                                }
-                                
-
-                               
-                                // if(j == tasks[i].size() - 2){
-                                //     cout<<"asdfasdf";
-                                //     cycle++;
-                                // }
-
-                                // if(i == tasks.size()){
-                                //     cout<<"yas qene";
-                                //     cycle++;
-                                // }
-                                // else{
-                                //     cout<<"ELSE\n";
-                                //     break;
-                                // }
-                               
+                                }    
                             }
-                         
-                            
-                            // if(i == numOfTasks-1 && j == tasks[i].size()-1){
-                            //     cycle++;
-                            // }     
-                            cout<<" \n=================\n";
-        
-                                    
                         }
-                       
-                    
-                        
-                        // else{
-                        //     cout<<totalNumOfActivities;
-                        //     cout<<' ';
-                        //     cout<<numOfActivitesCompleted;
-                        //     cout<<tasks[i][tasks[i].size()-1];
-                        //     cout<<'\n';
-                        //     printf("%s %d", " cycle",  getValue(tasks[i][j], 4));
-                        //     cout<<'\n';
-                        // }
-                        if(endTask){
-                            cout<<"endTASK\n";
+                        if(!parseBlocked){
                             break;
                         }
-                      
                     }
-                }   
-                if(!cont){
-                    break;
                 }
-                print2dStringVector(tasks);
-                cout<<"=====================";
-                // cout<< "numOfActivitesCompleted = ";
-                // cout<<numOfActivitesCompleted;
-                // cout<<'\n';
-                // cout<< "totalNumOfActivities = ";
-                // cout<<totalNumOfActivities;
-                // cout<<'\n';
-
-
-            //keep track of each execution - add cycle count to each execution
-            //need function that updates tasks arr with cycle count for each activity
-            }
-            if(!cont){
-                break;
+                else{
+                    continue;
+                }
             }
         }
 
+        for(int i = 0; i < tasks.size(); i++){
+            numOfActivitesPerTask = 0;
+            if (!std::count(blocked.begin(), blocked.end(), i)){
+                if(tasks[i][tasks[i].size()-1] != "\nabort"){
+                    for(int j = 1; j < tasks[i].size() - 1; j++){
+                        if(getValue(tasks[i][j], 4) == 0){
+                            if(getActivityName(tasks[i][j]) == "request"){
+                                std::string delayedIndex = to_string(i) + "-" + to_string(j);
+                                if(delaysPerTask[i] == 0 && getValue(tasks[i][j], 1) != 0 && !std::count(delayedTasks.begin(), delayedTasks.end(), delayedIndex)){
+                                    delaysPerTask = initializeDelaysPerTask(tasks, delayedTasks).first;
+                                    delayedTasks = initializeDelaysPerTask(tasks, delayedTasks).second;
+                                    activityNamePerDelayedTask[i] = "request";
+                                    break;
+                                }
+                                if(getActivityName(tasks[i][j-1]) != "initiate" && getValue(tasks[i][j-1], 4) == 0){
+                                    break;
+                                }
+                                if(delaysPerTask[i] != 0){
+                                    break;
+                                }
+                                if((getValue(tasks[i][j], 3) +  numUnitsPerResourceTypePerTaskUsed[i][getValue(tasks[i][j], 2) - 1]) > (getValue(tasks[i][getValue(tasks[i][j], 2) - 1], 3))){
+                                    // getValue(tasks[i][getValue(tasks[i][j], 2) - 1], 3)
+                                    
+                                    numUnitsPerResourceType[getValue(tasks[i][j], 2) - 1] +=  numUnitsPerResourceTypePerTaskUsed[i][getValue(tasks[i][j], 2) - 1];
+                                    numOfActivitesCompleted = numOfActivitesCompleted + tasks[i].size() - j - 1;
+                                    tasks[i].push_back("\nabort");
+                                    cycle++;
+                                    if(blocked.size() > 0 && blocked[0] != -1){
+                                        blocked[0] = -1;
+                                    }
+                                    break;
+                                }
+
+                                if(getValue(tasks[i][j], 3) <=  numUnitsPerResourceType[getValue(tasks[i][j], 2) - 1]){
+                                    tasks[i][j] += to_string(cycle) + " ";
+                                    numUnitsPerResourceType[getValue(tasks[i][j], 2) - 1] -= getValue(tasks[i][j], 3);
+                                    numOfActivitesCompleted++;
+                                    numOfActivitesPerTask++;
+                                    blockedSizeTemp = -1;
+                                    numUnitsPerResourceTypePerTaskUsed[i][getValue(tasks[i][j], 2) - 1] += getValue(tasks[i][j], 3); 
+                                    break;
+
+                                }
+                                else{
+                                    blockedSizeTemp = blocked.size();
+                                    blocked.push_back(i);
+                                    break;
+                                }
+
+                                
+                                }
+                            if(getActivityName(tasks[i][j]) == "release"){
+                                std::string delayedIndex = to_string(i) + "-" + to_string(j);
+                                if(delaysPerTask[i] == 0 && getValue(tasks[i][j], 1) != 0 && !std::count(delayedTasks.begin(), delayedTasks.end(), delayedIndex)){
+                                    delaysPerTask = initializeDelaysPerTask(tasks, delayedTasks).first;
+                                    delayedTasks = initializeDelaysPerTask(tasks, delayedTasks).second;
+                                    activityNamePerDelayedTask[i] = "release";
+                                    break;
+                                }
+                                if(getActivityName(tasks[i][j-1]) != "initiate" && getValue(tasks[i][j-1], 4) == 0){
+                                    break;
+                                }
+                                if(delaysPerTask[i] != 0){
+                                    break;
+                                }
+                                else{
+                                    tasks[i][j] += to_string(cycle) + " ";
+                                    numUnitsPerResourceType[getValue(tasks[i][j], 2) - 1] += getValue(tasks[i][j], 3);
+                                    numOfActivitesCompleted++;
+                                    numOfActivitesPerTask++;
+                                    numUnitsPerResourceTypePerTaskUsed[i][getValue(tasks[i][j], 2) - 1] -= getValue(tasks[i][j], 3); 
+                                    if(getActivityName(tasks[i][j+1]) == "terminate"){
+                                        tasks[i][j+1] += to_string(cycle + getValue(tasks[i][j+1], 1)) + " ";
+                                    }
+                                                
+                                    if(j == tasks[i].size() - 2){
+                                        numOfCompletedTasksTemp = numOfCompletedTasks;
+                                        numOfCompletedTasks++;
+                                    }
+                                    if(j+1 <= tasks[i].size() - 2){
+                                        if(getActivityName(tasks[i][j+1]) == "release" && getValue(tasks[i][j], 2) - 1 != getValue(tasks[i][j+1], 2) - 1){
+                                            break;
+                                        }
+                                    }
+                                    blockedSizeTemp = blocked.size();
+                                    blocked.push_back(i);
+                                    
+                                    break;
+
+                                }
+
+                                
+                            }
+
+                            
+
+
+                        }
+
+
+                    }
+                }
+            }
+            
+
+        }
+       
     }
-    
-
     //0 = task number, 1 = delay, 2 = resource-type, 3 = number-requested (units), 4 = cycle
+    cout<<"        BANKER'S\n";
+    printBankers(tasks);
    
-    print2dStringVector(tasks);
-    // print2dIntVector(numUnitsAvailablePerTaskPerResourceType);
-    cout<<'\n';
-    print1dIntVector(numUnitsPerResourceType);
-    cout<<'\n';
-
-    
 }
+
 
