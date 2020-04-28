@@ -371,7 +371,7 @@ int getCorrectIndexInBlocked(std::vector<int> blocked, int taskIndex){
 }
 
 
-
+//BANKERS
 void bankers(std::vector<vector<string>> tasks, std::vector<int> firstLineArr){
     int numOfTasks = firstLineArr[0];
     int numOfResources = firstLineArr[1];
@@ -403,6 +403,7 @@ void bankers(std::vector<vector<string>> tasks, std::vector<int> firstLineArr){
         cycle++;
         parseBlocked = true;
         justDecreasedDelays = false;
+        //if delays exist decrement by 1
         if(count > 0 && getTrueSizeOfBlocked(blocked) > 0 ){
             for(int d = 0; d < delaysPerTask.size(); d++){
                 if(delaysPerTask[d] != 0){
@@ -412,6 +413,7 @@ void bankers(std::vector<vector<string>> tasks, std::vector<int> firstLineArr){
                 }
             }
         }
+        //parse blocks
         if(count > 0 && parseBlocked){
             for(int b = 0; b < blocked.size(); b++){
                 if(blocked[b] != -1){
@@ -444,7 +446,7 @@ void bankers(std::vector<vector<string>> tasks, std::vector<int> firstLineArr){
                 }
             }
         }
-
+        //parse tasks
         for(int i = 0; i < tasks.size(); i++){
             if (!std::count(blocked.begin(), blocked.end(), i)){
                 if(tasks[i][tasks[i].size()-1] != "\nabort"){
@@ -555,7 +557,7 @@ void bankers(std::vector<vector<string>> tasks, std::vector<int> firstLineArr){
    
 }
 
-//deadlock is when all cannot request. so remove lastActivity != release thing. check for deadlock case and then proceed with aborts until avail num of resources is stable for the next non aborted task. otherwise just block it.
+//FIFO
 void fifo(std::vector<vector<string>> tasks, std::vector<int> firstLineArr){
     int numOfAbortsPerRound = 0;
     int numOfTasks = firstLineArr[0];
