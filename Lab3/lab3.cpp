@@ -34,8 +34,10 @@ int main ( int argc, char *argv[] )
     vector<vector<string> > tasks( firstLineArr[0] , vector<string> (0));
     tasks = allocateToArray(firstLineArr[0]);
 
-    // bankers(tasks, firstLineArr);
+    bankers(tasks, firstLineArr);
+    cout<<"\n\n";
     fifo(tasks, firstLineArr);
+    cout<<"\n";
 
 }
 
@@ -358,6 +360,17 @@ void printBankers(std::vector<vector<string>> tasks){
     cout<<'\n';
 }
 
+int getCorrectIndexInBlocked(std::vector<int> blocked, int taskIndex){
+    int ret = -1;
+    for(int i = 0; i < blocked.size(); i++){
+        if(blocked[i] == taskIndex){
+            ret = i;
+        }
+    }
+    return ret;
+}
+
+
 
 void bankers(std::vector<vector<string>> tasks, std::vector<int> firstLineArr){
     int numOfTasks = firstLineArr[0];
@@ -552,11 +565,14 @@ void fifo(std::vector<vector<string>> tasks, std::vector<int> firstLineArr){
     std::vector<int> numUnitsPerResourceTypeRemaining = numUnitsPerResourceType;
     int totalNumOfActivities = getTotalNumOfActivities(tasks) - numOfTasks;
     std::vector<vector<int>> numUnitsPerResourceTypePerTaskUsed( numOfTasks , vector<int> (numOfResources));
+    int numOfFailedRequests = 0;
     int cycle = numOfResources;
+    int cycleTemp = cycle;
     int res = 0;
     bool cont = true;
     int count = -1;
     bool endTask = false;
+    bool justTerminated = false;
     std::string lastActivity = "";
     std::string lastActivity2 = "";
     // checkForInitialAbort(numUnitsPerResourceType, tasks, addToNumOfActivitesCompleted);
@@ -565,6 +581,7 @@ void fifo(std::vector<vector<string>> tasks, std::vector<int> firstLineArr){
     int numOfCompletedTasks = 0;
     int numOfCompletedTasksTemp = 0;
     // std::vector<int> blocked = initializeBlocked(checkIfValid, tasks);
+    std::vector<int> indexWhenBlocked(numOfTasks);
     std::vector<int> blocked;
     std::vector<int> delaysPerTask(numOfTasks);
     std::vector<string> activityNamePerDelayedTask(numOfTasks);
@@ -573,34 +590,18 @@ void fifo(std::vector<vector<string>> tasks, std::vector<int> firstLineArr){
     int blockedSizeTemp = blocked.size();
     std::vector<string> delayedTasks;
     bool justDecreasedDelays = false;
-    cout<<numOfActivitesCompleted;
-    cout<<'\n';
-    cout<<totalNumOfActivities;
-    cout<<'\n';
+    int numOfTerminatedTasks = 0;
+    std::vector<int> numOfResourcesReleaseThisRoundPerResourceType(numOfResources);
     while(cont && numOfActivitesCompleted != totalNumOfActivities ){
         lastActivity = "";
         numOfAbortsPerRound = 0;
-        cout<<numOfActivitesCompleted;
-        cout<<'\n';
-        cout<<totalNumOfActivities;
-        cout<<'\n';
-        cout<<"CYCLE: ";
-        cout<<cycle;
-        cout<<'\n';
-        cout<<"================\n";
+        
         count++;
+        cycleTemp = cycle;
         cycle++;
+        
         parseBlocked = true;
         justDecreasedDelays = false;
-        if(count > 0){
-            for(int d = 0; d < delaysPerTask.size(); d++){
-                if(delaysPerTask[d] != 0){
-                    delaysPerTask[d] -= 1;
-                    justDecreasedDelays = true;
-
-                }
-            }
-        }
 
         if(count > 0 && parseBlocked){
             for(int b = 0; b < blocked.size(); b++){
@@ -634,44 +635,80 @@ void fifo(std::vector<vector<string>> tasks, std::vector<int> firstLineArr){
                 }
             }
         }
+        // if(getTrueSizeOfBlocked(blocked) != numOfTasks - numOfTerminatedTasks){
+        //     cycle++; 
+        // }
+        //cycle++;
 
+
+        if(getTrueSizeOfBlocked(blocked) == numOfTasks - numOfTerminatedTasks){
+            blocked.erase(std::remove(blocked.begin(), blocked.end(), -1), blocked.end());
+            sort(blocked.begin(), blocked.end());
+            for(int i = 0; i < blocked.size(); i++){
+                int correctTaskIndex = getCorrectIndexInBlocked(blocked, i);  
+                if(indexWhenBlocked[blocked[i]] != -1){
+                    if(getValue(tasks[i][indexWhenBlocked[blocked[i]]], 3) >  numUnitsPerResourceType[getValue(tasks[i][indexWhenBlocked[blocked[i]]], 2) - 1] && (getValue(tasks[i][tasks[i].size()-1], 4) == 0 && tasks[i][tasks[i].size()-1] != "\nabort")){
+                        // numOfResourcesReleaseThisRoundPerResourceType[getValue(tasks[blocked[b]][indexWhenBlocked[blocked[b]]], 2) - 1] +=  numUnitsPerResourceTypePerTaskUsed[blocked[b]][getValue(tasks[blocked[b]][indexWhenBlocked[blocked[b]]], 2) - 1];
+                        tasks[i].push_back("\nabort");
+                        numUnitsPerResourceType[getValue(tasks[i][indexWhenBlocked[blocked[i]] ], 2) - 1] +=  numUnitsPerResourceTypePerTaskUsed[i][getValue(tasks[i][indexWhenBlocked[blocked[i]]], 2) - 1];
+                        numOfActivitesCompleted = numOfActivitesCompleted + tasks[i].size() - indexWhenBlocked[blocked[i]] - 2;
+                        //numOfTerminatedTasks++;
+                        numOfAbortsPerRound++;
+                        numOfCompletedTasksTemp = numOfCompletedTasks;
+                        numOfCompletedTasks++;
+                        indexWhenBlocked[blocked[i]] = -1;
+                        //blocked[i] = -1;
+                        blocked[i] = -1;
+                        // if(numOfAbortsPerRound == 1){
+                        //     cycle++;
+                        // }
+            
+                    }
+                    else{
+                        
+                        indexWhenBlocked[blocked[i]] = -1;
+                        blocked[i] = -1;
+                        //blocked[i] = -1;                
+                    
+                    }
+                }     
+            }
+            //cycle--;
+        }
+        justTerminated = false;
         for(int i = 0; i < tasks.size(); i++){
-            if (!std::count(blocked.begin(), blocked.end(), i)){
+            if (!std::count(blocked.begin(), blocked.end(), i) && getTrueSizeOfBlocked(blocked) != numOfTasks - numOfTerminatedTasks){
                 if(tasks[i][tasks[i].size()-1] != "\nabort"){
                     for(int j = 1; j < tasks[i].size() - 1; j++){
                         if(getValue(tasks[i][j], 4) == 0){
                             if(getActivityName(tasks[i][j]) == "request"){
                                 std::string delayedIndex = to_string(i) + "-" + to_string(j);
-                                if(delaysPerTask[i] == 0 && getValue(tasks[i][j], 1) != 0 && !std::count(delayedTasks.begin(), delayedTasks.end(), delayedIndex)){
-                                    delaysPerTask = initializeDelaysPerTask(tasks, delayedTasks).first;
-                                    delayedTasks = initializeDelaysPerTask(tasks, delayedTasks).second;
-                                    activityNamePerDelayedTask[i] = "request";
+                                // if(getActivityName(tasks[i][j-1]) == "request" && getTrueSizeOfBlocked(blocked) > 0 && cycle - 1 == getValue(tasks[i][j-1], 4) ){
+                                //     break;
+                                // }
+                                if(getValue(tasks[i][j], 1) + getValue(tasks[i][j-1], 4) + 1 != cycle && getValue(tasks[i][j], 1) != 0){
                                     break;
                                 }
                                 if(getActivityName(tasks[i][j-1]) != "initiate" && getValue(tasks[i][j-1], 4) == 0){
                                     break;
                                 }
-                                if(delaysPerTask[i] != 0){
-                                    break;
-                                }
-
                                 if(getValue(tasks[i][j], 3) >  numUnitsPerResourceType[getValue(tasks[i][j], 2) - 1]){
-                                    numUnitsPerResourceType[getValue(tasks[i][j], 2) - 1] +=  numUnitsPerResourceTypePerTaskUsed[i][getValue(tasks[i][j], 2) - 1];
-                                    numOfActivitesCompleted = numOfActivitesCompleted + tasks[i].size() - j - 1;
-                                    tasks[i].push_back("\nabort");
-                                    numOfAbortsPerRound++;
-                                    if(numOfAbortsPerRound == 1){
-                                        cycle++;
-                                    }
+                                    indexWhenBlocked[i] = j;
+                                    blockedSizeTemp = blocked.size();
+                                    blocked.push_back(i);
+                                    numOfFailedRequests++;
                                     break;
                                     
                                 }
                                
                                 if((getValue(tasks[i][j], 3) +  numUnitsPerResourceTypePerTaskUsed[i][getValue(tasks[i][j], 2) - 1]) > (getValue(tasks[i][getValue(tasks[i][j], 2) - 1], 3))){
                                     // above checks corresponding initiate 
-                                    numUnitsPerResourceType[getValue(tasks[i][j], 2) - 1] +=  numUnitsPerResourceTypePerTaskUsed[i][getValue(tasks[i][j], 2) - 1];
+                                    //numUnitsPerResourceType[getValue(tasks[i][j], 2) - 1] +=  numUnitsPerResourceTypePerTaskUsed[i][getValue(tasks[i][j], 2) - 1];
+                                    numOfResourcesReleaseThisRoundPerResourceType[getValue(tasks[i][j], 2) - 1] +=  numUnitsPerResourceTypePerTaskUsed[i][getValue(tasks[i][j], 2) - 1];
                                     numOfActivitesCompleted = numOfActivitesCompleted + tasks[i].size() - j - 1;
                                     tasks[i].push_back("\nabort");
+                                    //numOfTerminatedTasks++;
+                                    cycleTemp = cycle;
                                     cycle++;
                                     if(blocked.size() > 0 && blocked[0] != -1){
                                         blocked[0] = -1;
@@ -679,7 +716,7 @@ void fifo(std::vector<vector<string>> tasks, std::vector<int> firstLineArr){
                                     break;
                                 }
 
-                                if(getValue(tasks[i][j], 3) <=  numUnitsPerResourceType[getValue(tasks[i][j], 2) - 1] && lastActivity != "release"){
+                                if(getValue(tasks[i][j], 3) <=  numUnitsPerResourceType[getValue(tasks[i][j], 2) - 1]){
                                     lastActivity = "request";
                                     tasks[i][j] += to_string(cycle) + " ";
                                     numUnitsPerResourceType[getValue(tasks[i][j], 2) - 1] -= getValue(tasks[i][j], 3);
@@ -695,36 +732,37 @@ void fifo(std::vector<vector<string>> tasks, std::vector<int> firstLineArr){
                                     blocked.push_back(i);
                                     break;
                                 }
-                             
-
                                 
                             }
                             if(getActivityName(tasks[i][j]) == "release"){
                                 std::string delayedIndex = to_string(i) + "-" + to_string(j);
-                                if(delaysPerTask[i] == 0 && getValue(tasks[i][j], 1) != 0 && !std::count(delayedTasks.begin(), delayedTasks.end(), delayedIndex)){
-                                    delaysPerTask = initializeDelaysPerTask(tasks, delayedTasks).first;
-                                    delayedTasks = initializeDelaysPerTask(tasks, delayedTasks).second;
-                                    activityNamePerDelayedTask[i] = "release";
+                                if(getValue(tasks[i][j], 1) + getValue(tasks[i][j-1], 4) + 1 != cycle && getValue(tasks[i][j], 1) != 0){
                                     break;
                                 }
                                 if(getActivityName(tasks[i][j-1]) != "initiate" && getValue(tasks[i][j-1], 4) == 0){
                                     break;
                                 }
-                                if(delaysPerTask[i] != 0){
-                                    break;
-                                }
                                 else{
                                     lastActivity = "release";
                                     tasks[i][j] += to_string(cycle) + " ";
-                                    numUnitsPerResourceType[getValue(tasks[i][j], 2) - 1] += getValue(tasks[i][j], 3);
+                                    //numUnitsPerResourceType[getValue(tasks[i][j], 2) - 1] += getValue(tasks[i][j], 3);
+                                    numOfResourcesReleaseThisRoundPerResourceType[getValue(tasks[i][j], 2) - 1] += getValue(tasks[i][j], 3);
                                     numOfActivitesCompleted++;
                                     numUnitsPerResourceTypePerTaskUsed[i][getValue(tasks[i][j], 2) - 1] -= getValue(tasks[i][j], 3); 
                                     if(getActivityName(tasks[i][j+1]) == "terminate"){
                                         tasks[i][j+1] += to_string(cycle + getValue(tasks[i][j+1], 1)) + " ";
+                                        for(int b = 0; b < blocked.size(); b++){
+                                            if(blocked[b] == i){
+                                                blocked[b] = -1;
+                                            }
+                                        }
+                                        justTerminated = true;
+                                        numOfTerminatedTasks++;
                                     }
                                                 
                                     if(j == tasks[i].size() - 2){
                                         numOfCompletedTasksTemp = numOfCompletedTasks;
+                                        
                                         numOfCompletedTasks++;
                                     }
                                     if(j+1 <= tasks[i].size() - 2){
@@ -732,34 +770,23 @@ void fifo(std::vector<vector<string>> tasks, std::vector<int> firstLineArr){
                                             break;
                                         }
                                     }
-                                    blockedSizeTemp = blocked.size();
-                                    blocked.push_back(i);
-                                    
+                                    // blockedSizeTemp = blocked.size();
+                                    // blocked.push_back(i);                           
                                     break;
-
-                                }
-
-                                
+                                }                         
                             }
-
-                            
-
-
                         }
-
-
                     }
                 }
-            }
-            
-
+            }     
         }
-
-       
-        print2dStringVector(tasks);
-
+        for(int i = 0; i < numUnitsPerResourceType.size(); i++){
+            numUnitsPerResourceType[i] += numOfResourcesReleaseThisRoundPerResourceType[i];
+            numOfResourcesReleaseThisRoundPerResourceType[i] = 0;
+        }
     }
-        
+    cout<<"        FIFO'S\n";
+    printBankers(tasks);
 
 }
 
