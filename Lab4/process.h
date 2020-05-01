@@ -18,6 +18,8 @@
 #include<string.h>
 #include <algorithm>
 #include <math.h>   
+#include <limits>
+#include <cstddef>
 
 class Process{
     public:
@@ -31,10 +33,10 @@ class Process{
         int numOfReferencesTaken;				// number of references taken
         int numOfFaults;			// number of faults
         int numOfEvictions;		// number of evictions
-        int time;			// total resisdency time for this process
+        int runTime;			// total resisdency time for this process
         int processId;			// the index of this process in process list
         int status;
-        void nextReference(std::ifstream rand_sc);
+        static void nextReference(int rand_sc);
 
     Process(double AParam, double BParam, double CParam, int pageSizeParam, int processSizeParam, int numOfReferencesParam, int processIdParam){ 
         A = AParam;
@@ -48,7 +50,7 @@ class Process{
         numOfReferencesTaken = 0;
         numOfFaults= 0;
         numOfEvictions = 0;
-        time = 0;
+        runTime = 0;
         // initial reference number
 		currentReference = (111 * (processIdParam + 1)) % processSizeParam;  
         

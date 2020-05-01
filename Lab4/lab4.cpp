@@ -12,7 +12,8 @@
 #include<string.h>
 #include <algorithm>
 #include <math.h>   
-
+#include <limits>
+#include <cstddef>
 #include "frame.h"
 #include "process.h"
 
@@ -20,25 +21,31 @@
 
 using namespace std;
 
-std::ifstream randomFile; 
 int machineSize, pageSize, processSize, jobMix, numOfReferences;
 int debugStatus;
 std::string replacementAlgo;
 int quantumNum = 3;
 vector<Process> processList;
 vector<Frame> frameList;
-
+ifstream infile("random-numbers");
+int randomNum();
+std::ifstream& GotoLine(std::ifstream& file, unsigned int num);
 void collectInput(int argc, char *argv[]);
+int replace_random(vector<Frame>  frameList);
 
+// void Process::nextReference(int r);
 int main ( int argc, char *argv[] )
-{
-    randomFile = "random-numbers";
+{   
+    
+    srand (time(NULL));
     collectInput(argc, argv);
     cout<<'\n';
     cout<<processList.size();
     cout<<'\n';
     cout<<frameList.size();
     cout<<'\n';
+  
+
   
 
 }
@@ -166,20 +173,174 @@ int replace_fifo(vector<Frame>  frameList){
 		int index = -1;
 		for (int i = 0; i < frameList.size(); i++){
 			Frame currentFrame= frameList[i];
-			if (currentFrame.InitialTime < smallestVal){
-				smallestVal = currentFrame.InitialTime;
+			if (currentFrame.initialTime < smallestVal){
+				smallestVal = currentFrame.initialTime;
 				index = i;
 			}
 		}
 		return index;
 }
 
-	//Find the replaced frame using random number algorithm
-	
-int replace_random(vector<Frame> frameList){
-        int randNum = rand() % randomFile;
-		int index = randNum % (frameList.size());
-		return index;
+
+int replace_random(vector<Frame>  frameList){
+    int index = 0;
+    int count = 0;
+    std::string randomNum = "";
+    int randomIndex = rand() % 100000;
+    cout<<"RANDOM INDEX: ";
+    cout<<randomIndex;
+    cout<<'\n';
+    if (!infile.is_open() ){
+        cout<<"Could not open file\n";
+    }      
+    else {
+        char x;
+        while (infile.get(x)){
+            if(x != '\n'){
+                randomNum += x; 
+            }
+            if(count == randomIndex-2){
+                randomNum = "";
+            }
+            if(count == randomIndex){
+                randomNum.pop_back();
+                index = stoi(randomNum) % frameList.size();
+                break;
+            }
+            if(x == '\n'){
+                count++;
+            }            
+        }      
+    }
+    return index;
 }
-    
+
+
+int getRandomNum(){
+    int num = 0;
+    int count = 0;
+    std::string randomNum = "";
+    int randomIndex = rand() % 100000;
+    cout<<"RANDOM INDEX: ";
+    cout<<randomIndex;
+    cout<<'\n';
+    if (!infile.is_open() ){
+        cout<<"Could not open file\n";
+    }      
+    else {
+        char x;
+        while (infile.get(x)){
+            if(x != '\n'){
+                randomNum += x; 
+            }
+            if(count == randomIndex-2){
+                randomNum = "";
+            }
+            if(count == randomIndex){
+                randomNum.pop_back();
+                num = stoi(randomNum);
+                break;
+            }
+            if(x == '\n'){
+                count++;
+            }            
+        }      
+    }
+    return num;
+}
+
+void run(){
+    int time = 1;									// virtual clock starting from 1
+	int numFinished = 0;
+
+    while (numFinished < processList.size()){
+        for (int i = 0; i < processList.size(); i++){
+            for(int j = 0; j < quantumNum; j++){
+                Process currentProcess = processList[i];
+                if(currentProcess.status == 1){
+                    break;
+                }   
+                if(currentProcess.numOfReferencesTaken == numOfReferences){
+                    numFinished++;
+                    currentProcess.status = 1;
+                    break;
+                }
+                int currentPage = currentProcess.currentReference/pageSize;
+                int check = checkHit(currentProcess, frameList);
+
+                if(check != -1){
+                    Frame frameTemp = frameList[check];
+                    frameTemp.lastAcessTime = time;
+                    int frameTempId = currentProcess.processId + 1;
+                    if(debugStatus == 1){
+                        printf("%d %s %d %s %d %s %d %s %d", frameTempId, " reference word ", currentProcess.currentReference, " (Page ", currentPage, ") at time ", time, " :Hit in frame ", check);
+                    }
+                }
+
+                else{
+                    int check1 = checkFull(frameList);
+
+                    if(check1 != -1){
+                        Frame free = frameList[check1];
+                        free.processId = currentProcess.processId;
+                        free.pageNum = currentPage;
+                        free.status = 1;
+                        free.initialTime = time;
+                        free.lastAcessTime = time;
+                        int frameTempId = currentProcess.processId + 1;
+                        if(debugStatus == 1){
+                            printf("%d %s %d %s %d %s %d %s %d", frameTempId, " reference word ", currentProcess.currentReference, " (Page ", currentPage, ") at time ", time, " :Fault, using free frame ", check1);
+                        }
+                        currentProcess.numOfFaults++;
+                    }
+
+                    else{
+                        int index = -1;
+                        
+                        if(replacementAlgo.compare("lru") == 0){
+                            index = replace_lru(frameList);
+                        }
+                        else if(replacementAlgo.compare("fifo") == 0){
+                            index = replace_fifo(frameList);
+                        }
+                        else if(replacementAlgo.compare("random") == 0){
+                            index = replace_random(frameList);
+                        }
+                        else{
+                            printf("INVALID REPLACEMENT ALGO!\n");
+                            return;
+                        }
+
+                        Frame replacedFrame = frameList[index];
+                        int replacedPage = replacedFrame.pageNum;
+                        int id = replacedFrame.processId;
+
+                        Process replacedProcess = processList[id];
+                        replacedProcess.numOfEvictions++;
+                        replacedProcess.runTime += time - replacedFrame.initialTime;
+
+                        replacedFrame.initialTime = time;
+                        replacedFrame.lastAcessTime = time;
+                        replacedFrame.processId = currentProcess.processId;
+                        replacedFrame.pageNum = currentPage;
+                        replacedFrame.status = 1;
+                        int frameTempId = currentProcess.processId + 1;
+                        if(debugStatus == 1){
+                            printf("%d %s %d %s %d %s %d %s %d %s %d %s %d", frameTempId, " reference word ", currentProcess.currentReference, " (Page ", currentPage, ") at time ", time, " :Fault, evicting page ", replacedPage, " of ", replacedProcess.processId, " from Frame ", index);
+                        } 
+                        currentProcess.numOfFaults++;                                                                   
+                    }
+                }
+                const int num = getRandomNum();
+                currentProcess.nextReference(num);
+                currentProcess.numOfReferencesTaken++;
+                time++;
+
+            }
+        }
+    }
+}
+
+
+
 

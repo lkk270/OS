@@ -2,7 +2,7 @@
 #include <time.h>
 #include <stdio.h>     
 #include <stdlib.h> 
-
+#include <limits>
 #include <iostream>
 #include <string>
 #include <map>
@@ -12,6 +12,7 @@
 #include <iomanip>
 #include <cstring>
 #include <cstdio>
+#include <cstddef>
 #include <cstdlib>
 // #include <array>
 #include<string.h>
@@ -19,10 +20,11 @@
 #include <math.h>   
 
 
-void nextReference(std::ifstream rand){
+
+static void Process::nextReference(int randNum){
     int nextRef = 0;
     
-    int randNum = rand() % rand;
+    // int randNum = rand() % rand;
     
     double p = randNum / double(std::numeric_limits<int>::max());
     
