@@ -33,26 +33,60 @@ class Process{
         int numOfReferencesTaken;				// number of references taken
         int numOfFaults;			// number of faults
         int numOfEvictions;		// number of evictions
-        int runTime;			// total resisdency time for this process
+        int residencyTime;			// total residency time for this process
         int processId;			// the index of this process in process list
         int status;
-        static void nextReference(int rand_sc);
+        void nextReference(int randNum){
+            int nextRef = 0;
+            // std::cout<<"\nBEFORE CURRENT REFERENCE ";
+            // std::cout<<this->currentReference;
+            // std::cout<<'\n';
+            // int randNum = rand() % rand;
+            
+            double p = randNum / double(std::numeric_limits<int>::max());
+            // std::cout<<"randNum ";
+            // std::cout<<randNum;
+            // std::cout<<'\n';
+            // std::cout<<"p ";
+            // std::cout<<p;
+            // std::cout<<'\n';
+            if (p < this-> A){
+                //std::cout<<"COCK1\n";
+                nextRef = (this->currentReference + 1) % this->processSize;
+            }else if (p < this->A + this->B){
+                //std::cout<<"COCK2\n";
+                nextRef = (this->currentReference + this->processSize - 5) % this->processSize;
+            }else if (p < this->A + this->B + this->C){
+                //std::cout<<"COCK3\n";
+                nextRef = (this->currentReference + 4) % this->processSize;
+            }else{
+                ///std::cout<<"COCK4\n";
+                int temp = rand() % randNum;
+                nextRef = temp % this->processSize;
+            }
+            
+            this->currentReference = nextRef;
+            // std::cout<<"AFTER CURRENT REFERENCE ";
+            // std::cout<<this->currentReference;
+            // std::cout<<'\n';
+            
+        }
 
     Process(double AParam, double BParam, double CParam, int pageSizeParam, int processSizeParam, int numOfReferencesParam, int processIdParam){ 
-        A = AParam;
-		B = BParam;
-		C = CParam;
-		pageSize = pageSizeParam;
-		processSize = processSizeParam;
-		numOfReferences= numOfReferencesParam;
-        status = 0;
-        processId = processIdParam;
-        numOfReferencesTaken = 0;
-        numOfFaults= 0;
-        numOfEvictions = 0;
-        runTime = 0;
+        this->A = AParam;
+		this->B = BParam;
+		this->C = CParam;
+		this->pageSize = pageSizeParam;
+		this->processSize = processSizeParam;
+		this->numOfReferences= numOfReferencesParam;
+        this->status = 0;
+        this->processId = processIdParam;
+        this->numOfReferencesTaken = 0;
+        this->numOfFaults= 0;
+        this->numOfEvictions = 0;
+        this->residencyTime = 0;
         // initial reference number
-		currentReference = (111 * (processIdParam + 1)) % processSizeParam;  
+		this->currentReference = (111 * (processIdParam + 1)) % processSizeParam;  
         
     }
 };
