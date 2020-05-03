@@ -68,34 +68,34 @@ void collectInput(int argc, char *argv[]){ //allocates user inputs to appropriat
     cout<<".\n";
     printf("%s %s", "The replacement algorithm is", replacementAlgo.c_str());
     cout<<".\n";
-    printf("%s %d", "The debug level is", debugStatus);
+    printf("%s %d", "The level of debugging output is", debugStatus);
     cout<<".\n\n";
 
     if(jobMix == 1){
-            Process*  p1 = new Process(1.0, 0.0, 0.0, pageSize, processSize, numOfReferences, 0);
-            processList.push_back(p1);
+            Process*  process1 = new Process(1.0, 0.0, 0.0, pageSize, processSize, numOfReferences, 0);
+            processList.push_back(process1);
     }
     else if(jobMix == 2){
         for(int i = 0; i < 4; i++){
-            Process* p2 = new Process(1.0, 0.0, 0.0, pageSize, processSize, numOfReferences, i);
-            processList.push_back(p2);
+            Process* process2 = new Process(1.0, 0.0, 0.0, pageSize, processSize, numOfReferences, i);
+            processList.push_back(process2);
         }
     }
     else if(jobMix == 3){
         for(int i = 0; i < 4; i++){
-            Process* p3 = new Process(0.0, 0.0, 0.0, pageSize, processSize, numOfReferences, i);
-            processList.push_back(p3);
+            Process* process3 = new Process(0.0, 0.0, 0.0, pageSize, processSize, numOfReferences, i);
+            processList.push_back(process3);
         }
     }
     else if(jobMix == 4){
-        Process* p4 = new Process(0.75, 0.25, 0, pageSize, processSize, numOfReferences, 0);
-        Process* p5 = new Process(0.75, 0.0, 0.25, pageSize, processSize, numOfReferences, 1);
-        Process* p6 = new Process(0.75, 0.125, 0.125, pageSize, processSize, numOfReferences, 2);
-        Process* p7 = new Process(0.5, 0.125, 0.125, pageSize, processSize, numOfReferences, 3);
-        processList.push_back(p4);
-        processList.push_back(p5);
-        processList.push_back(p6);
-        processList.push_back(p7);
+        Process* process4 = new Process(0.75, 0.25, 0, pageSize, processSize, numOfReferences, 0);
+        Process* process5 = new Process(0.75, 0.0, 0.25, pageSize, processSize, numOfReferences, 1);
+        Process* process6 = new Process(0.75, 0.125, 0.125, pageSize, processSize, numOfReferences, 2);
+        Process* process7 = new Process(0.5, 0.125, 0.125, pageSize, processSize, numOfReferences, 3);
+        processList.push_back(process4);
+        processList.push_back(process5);
+        processList.push_back(process6);
+        processList.push_back(process7);
 
     }
     else{
@@ -123,7 +123,6 @@ int checkHit(Process* p, vector<Frame*>  frameList){ // Checks if the current pr
 }
 
 
-	
 int checkFull(vector<Frame*> frameList){    //checks if the frame is full
     for (int i = frameList.size() - 1; i > -1; i--){
         Frame* currentFrame = frameList[i];
@@ -181,9 +180,6 @@ void typeOfPrint(double num){   //for printing floats nicely
     bool ret = true;
     int count = 0;
     std::string str = to_string(num);
-    // cout<<"STR ";
-    // cout<<str;
-    // cout<<'\n';
     bool dot = false;
     int numOfZeros = 0; 
     while (true){
@@ -230,17 +226,14 @@ void typeOfPrint(double num){   //for printing floats nicely
             break;
         default: 
             printf("%1.17g", num);
-            break;
-        
-    }
-        
-
+            break;       
+    }      
 } 
 
 
 void run(){
+    int numFinished = 0;
     int time = 1; 
-	int numFinished = 0;
     while (numFinished < processList.size()){    
         for (int i = 0; i < processList.size(); i++){
             for(int j = 0; j < quantumNum; j++){
@@ -265,7 +258,6 @@ void run(){
                         cout<<".\n";
                     }
                 }
-
                 else{
                     int check1 = checkFull(frameList);
 
@@ -273,10 +265,12 @@ void run(){
                         Frame* free = frameList[check1];
                         free->processId = currentProcess->processId;
                         free->pageNum = currentPage;
-                        free->status = 1;
-                        free->initialTime = time;
                         free->lastAcessTime = time;
+                        free->initialTime = time;
+                        free->status = 1; 
+
                         int frameTempId = currentProcess->processId + 1;
+                        
                         if(debugStatus == 1){
                             printf("%d %s %d %s %d %s %d %s %d", frameTempId, "reference word", currentProcess->currentReference, "(Page ", currentPage, ") at time", time, ":Fault, using free frame", check1);
                             cout<<".\n";
@@ -308,12 +302,12 @@ void run(){
                         Process* replacedProcess = processList[id];
                         replacedProcess->numOfEvictions++;
                         replacedProcess->residencyTime += time - replacedFrame->initialTime;
-
-                        replacedFrame->initialTime = time;
+                        
                         replacedFrame->lastAcessTime = time;
+                        replacedFrame->initialTime = time;
+                        replacedFrame->status = 1;
                         replacedFrame->processId = currentProcess->processId;
                         replacedFrame->pageNum = currentPage;
-                        replacedFrame->status = 1;
                         int frameTempId = currentProcess->processId + 1;
                         if(debugStatus == 1){
                             printf("%d %s %d %s %d %s %d %s %d %s %d %s %d", frameTempId, "references word", currentProcess->currentReference, "(Page ", currentPage, ") at time ", time, ":Fault, evicting page", replacedPage, "of", replacedProcess->processId, "from Frame", index);
@@ -351,8 +345,6 @@ void out(){
             printf("%s", " and ");
             typeOfPrint(averageResidency);
             printf("%s", " average residency.\n");
-            
-         
         }
     }
 
