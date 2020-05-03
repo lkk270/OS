@@ -8,7 +8,6 @@
 #include <cstring>
 #include <cstdio>
 #include <cstdlib>
-// #include <array>
 #include<string.h>
 #include <algorithm>
 #include <math.h>   
@@ -16,8 +15,6 @@
 #include <cstddef>
 #include "frame.h"
 #include "process.h"
-
-
 
 using namespace std;
 
@@ -28,34 +25,20 @@ int quantumNum = 3;
 vector<Process*> processList;
 vector<Frame*> frameList;
 ifstream infile("random-numbers");
-int getRandomNum();
-std::ifstream& GotoLine(std::ifstream& file, unsigned int num);
 void collectInput(int argc, char *argv[]);
+int getNextRandomNum();
 void run();
 void out();
 
-
-// void Process::nextReference(int r);
 int main ( int argc, char *argv[] )
 {   
-    
     srand (time(NULL));
     collectInput(argc, argv);
     run();
     out();
-    //cout<<getRandomNum();
-    // cout<<'\n';
-    // cout<<processList.size();
-    // cout<<'\n';
-    // cout<<frameList.size();
-    // cout<<'\n';
-  
-
-  
-
 }
 
-void collectInput(int argc, char *argv[]){
+void collectInput(int argc, char *argv[]){ //allocates user inputs to appropriate vars
     if (argc >= 7 ) {
         machineSize = stoi(argv[1]);
         pageSize = stoi(argv[2]);
@@ -86,7 +69,7 @@ void collectInput(int argc, char *argv[]){
     printf("%s %s", "The replacement algorithm is", replacementAlgo.c_str());
     cout<<".\n";
     printf("%s %d", "The debug level is", debugStatus);
-    cout<<".\n";
+    cout<<".\n\n";
 
     if(jobMix == 1){
             Process*  p1 = new Process(1.0, 0.0, 0.0, pageSize, processSize, numOfReferences, 0);
@@ -125,14 +108,10 @@ void collectInput(int argc, char *argv[]){
         Frame* f = new Frame(-1, -1, -1);
         frameList.push_back(f);
     }     
-
 }
 
 
-// Check whether the current reference of the process is in the frame table, return the index of the hitfrmae
-// If there is no hit, return -1
-
-int checkHit(Process* p, vector<Frame*>  frameList){
+int checkHit(Process* p, vector<Frame*>  frameList){ // Checks if the current process is in the frame table
 		for (int i = 0; i < frameList.size(); i++){
 			Frame* currentFrame = frameList[i];
 			int currentPage = p->currentReference / pageSize;
@@ -144,10 +123,8 @@ int checkHit(Process* p, vector<Frame*>  frameList){
 }
 
 
-	// Check whether the frmae table is full, return the index of the highest numbered free frame
-	// If the frame table is full, return -1
 	
-int checkFull(vector<Frame*> frameList){
+int checkFull(vector<Frame*> frameList){    //checks if the frame is full
     for (int i = frameList.size() - 1; i > -1; i--){
         Frame* currentFrame = frameList[i];
         if (currentFrame->status == 0){
@@ -157,8 +134,8 @@ int checkFull(vector<Frame*> frameList){
     return -1;
 }
 
-int replace_lru(vector<Frame*>  frameList){
-		// here smallest has to be max_value or there may be problems in case of input 14,16
+
+int lru(vector<Frame*>  frameList){ //replacement algo - lru
 		int smallestVal = std::numeric_limits<int>::max();
 		int index = -1;
 		for (int i = 0; i < frameList.size(); i++){
@@ -172,8 +149,7 @@ int replace_lru(vector<Frame*>  frameList){
 	}
 
 
-int replace_fifo(vector<Frame*>  frameList){
-		// here smallest has to be max_value or there may be problems in case of input 14,16
+int fifo(vector<Frame*>  frameList){ //replacement algo - fifo
 		int smallestVal = std::numeric_limits<int>::max();
 		int index = -1;
 		for (int i = 0; i < frameList.size(); i++){
@@ -187,97 +163,87 @@ int replace_fifo(vector<Frame*>  frameList){
 }
 
 
-int replace_random(vector<Frame*>  frameList, int randNum){
-    int index = randNum % frameList.size();
+int random(vector<Frame*>  frameList){ //replacement algo - random
+    int randNum = getNextRandomNum();
+    int index = (randNum) % frameList.size();
     return index;
 }
 
 
-int getRandomNum(){
-    int index = 0;
-    int count = 0;
-    std::string randomNum = "";
-    int randomIndex = rand() % 100000;
-    // cout<<"RANDOM INDEX: ";
-    // cout<<randomIndex;
-    // cout<<'\n';
-    if (!infile.is_open() ){
-        cout<<"Could not open file\n";
-    }      
-    else {
-        char x;
-        while (infile.get(x)){
-            if(x != '\n'){
-                randomNum += x; 
-            }
-            if(count == randomIndex-2){
-                randomNum = "";
-            }
-            if(count == randomIndex){
-                // cout<<"PLEASEWORK ";
-                // cout<<randomNum;
-                // cout<<"\nPLEASEWOR2 ";
-                randomNum.pop_back();
-                index = stoi(randomNum);
-                // cout<<index;
-                break;
-            }
-            if(x == '\n'){
-                count++;
-            }            
-        }      
-    }
-    return index;
+int getNextRandomNum(){ //next random num in random-numbers file
+    std::string num;
+    getline(infile, num);
+    return stoi(num);
 }
 
 
-bool typeOfPrint(double num) 
-{   
+void typeOfPrint(double num){   //for printing floats nicely
     bool ret = true;
     int count = 0;
     std::string str = to_string(num);
-    // cout<<"\nSTRING ";
-    // cout<<str[1];
+    // cout<<"STR ";
+    // cout<<str;
     // cout<<'\n';
-    // Count trailing zeros 
+    bool dot = false;
     int numOfZeros = 0; 
     while (true){
-        
-        if(count > 4 && str[count] == '0'){
+        if(!dot && str[count] == '.'){
+            dot = true;
+        }
+        if(dot && str[count] == '0'){
             numOfZeros++; 
         }
-        if(count + 1 == str.length() || numOfZeros > 0){
+        if(count + 1 == str.length()){
             break;
         }
         count++;
-    } 
-        
-    if(numOfZeros == 0){ 
-        ret = false;
-    
     }
+    if(str[str.length()-1] != '0' && numOfZeros == 0) {
+        printf("%1.17g", (num));
+        return;
+    }
+    else if(str[str.length()-1] != '0') {
+        printf("%1.16g", (num));
+        return;
+    }
+    switch(numOfZeros){
+        case 0: 
+            printf("%1.17g", (num));
+            break;
+        case 6: 
+            printf("%.1f", num);
+            break;
+        case 5: 
+            printf("%.1f", num);
+            break;
+        case 4: 
+            printf("%.2f", num);
+            break;
+        case 3: 
+            printf("%.3f", num);
+            break;
+        case 2: 
+            printf("%.4f", num);
+            break;
+        case 1:
+            printf("%.5f", num);
+            break;
+        default: 
+            printf("%1.17g", num);
+            break;
+        
+    }
+        
 
-    return ret;
-    // cout<<"\nSTRING2 ";
-    // cout<<str;
-    // cout<<'\n';
-  
-   
 } 
 
+
 void run(){
-    int time = 1;									// virtual clock starting from 1
+    int time = 1; 
 	int numFinished = 0;
-    int randomNum = getRandomNum();
-    // cout<<"THE randomNum IS ";
-    // cout<<randomNum;
-    // cout<<'\n';
-    while (numFinished < processList.size()){
+    while (numFinished < processList.size()){    
         for (int i = 0; i < processList.size(); i++){
             for(int j = 0; j < quantumNum; j++){
-                // cout<<"processList.size() ";
-                // cout<<processList.size();
-                // cout<<'\n';
                 Process* currentProcess = processList[i];
                 if(currentProcess->status == 1){
                     break;
@@ -322,13 +288,13 @@ void run(){
                         int index = -1;
                         
                         if(replacementAlgo.compare("lru") == 0){
-                            index = replace_lru(frameList);
+                            index = lru(frameList);
                         }
                         else if(replacementAlgo.compare("fifo") == 0){
-                            index = replace_fifo(frameList);
+                            index = fifo(frameList);
                         }
                         else if(replacementAlgo.compare("random") == 0){
-                            index = replace_random(frameList, randomNum);
+                            index = random(frameList);
                         }
                         else{
                             printf("INVALID REPLACEMENT ALGO!\n");
@@ -350,24 +316,20 @@ void run(){
                         replacedFrame->status = 1;
                         int frameTempId = currentProcess->processId + 1;
                         if(debugStatus == 1){
-                            printf("%d %s %d %s %d %s %d %s %d %s %d %s %d", frameTempId, "reference word", currentProcess->currentReference, "(Page ", currentPage, ") at time ", time, ":Fault, evicting page", replacedPage, "of", replacedProcess->processId, "from Frame", index);
+                            printf("%d %s %d %s %d %s %d %s %d %s %d %s %d", frameTempId, "references word", currentProcess->currentReference, "(Page ", currentPage, ") at time ", time, ":Fault, evicting page", replacedPage, "of", replacedProcess->processId, "from Frame", index);
                             cout<<".\n";
                         } 
                         currentProcess->numOfFaults++;                                                                   
                     }
                 }
-                // int num = getRandomNum();
-                // std::cout<<"numm ";
-                // std::cout<<num;
-                // std::cout<<'\n';
-                currentProcess->nextReference(randomNum);
+                currentProcess->nextReference(infile);
                 currentProcess->numOfReferencesTaken++;
                 time++;
-
             }
         }
     }
 }
+
 
 void out(){
     printf("%s", "\n");
@@ -386,36 +348,28 @@ void out(){
         }
         else{
             double averageResidency = (double) p->residencyTime/p->numOfEvictions;
-            if(typeOfPrint(averageResidency)){
-                printf("%s %.1f %s", " and", averageResidency, "average residency.\n");
-            }
-            else{
-                 printf("%s %.15f %s", " and", averageResidency, "average residency.\n");
-            }
-           
+            printf("%s", " and ");
+            typeOfPrint(averageResidency);
+            printf("%s", " average residency.\n");
+            
+         
         }
-
     }
 
     double totalAverageResidency = (double) totalResidency / totalEvictions;
     printf("%s", "\n");
 
     if(totalResidency != 0){
-        if(typeOfPrint(totalAverageResidency)){
-            printf("%s %d %s %.1f", "The total number of faults is", totalFaults, "and the overall average residency is", totalAverageResidency);
-            cout<<".\n";
-        }
-        else{
-            printf("%s %d %s %.15f", "The total number of faults is", totalFaults, "and the overall average residency is", totalAverageResidency);
-            cout<<".\n";
-        }  
+        printf("%s %d %s", "The total number of faults is", totalFaults, "and the overall average residency is ");
+        typeOfPrint(totalAverageResidency);
+        cout<<".\n";
+        
     }
     else{
         printf("%s %d", "The total number of faults is", totalFaults);
         cout<<".\n\tWith no evictions, the overall average residency is undefined.\n";
     }
     printf("%s", "\n");
-
 
 }
 
