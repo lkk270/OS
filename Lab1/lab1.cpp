@@ -91,12 +91,57 @@ void firstPass(std:: ifstream input){
 
 
         for (int i = 0; i < words.size(); i++){
-				if ("".compar(words[i]) != 0){
-					wordList.push_back(words[i]);
-				}
-			}
+            if (!words[i].empty()){
+                wordList.push_back(words[i]);
+            }
+		}
+        if ((lineNum % 3) == 0){
+            int defSize = stoi(wordList[0]);
+            for (int i = 0; i < defSize; i++){
+                string temp1 = wordList[1 + 2 * i];
+                int temp2 = stoi(wordList[2 + 2 * i]);
+                if (symTable.count(temp1) == 0){
+                    defList1.push_back(temp1);
+                    symTable.insert(pair<string, int>(temp1, addOffset + temp2)); 
+                    checkTable.insert(pair<string, int>(temp1, 1)); 
+               
+                }else{
+                    printf("%s %s %s", "Error: the symbol ", temp1.c_str(), " has already been defined");
+                }
+            }
+            defList.push_back(defList1);
+        }
+
+        else if((lineNum % 3) == 1){
+            int useSize = stoi(wordList[0]);
+            for (int i = 0; i < useSize; i++){
+                string temp = wordList[1 + i];
+                useList1.push_back(temp);
+            }
+            useList.push_back(useList1);
+        }
+
+        else if((lineNum % 3) == 2){
+            int instSize = stoi(wordList[0]);
+            for (int i = 0; i < instSize; i++){
+                string temp1 = wordList[1 + 2 * i];
+                string temp2 = wordList[2 + 2 * i];
+                instList1.push_back(temp1);
+                instList1.push_back(temp2);
+            }
+            instructions.push_back(instList1);
+            modBaseAdd.push_back(addOffset);
+            addOffset += instSize;
+            mod_count++;
+		}
+        lineNum++;
+        wordList.clear();
+        totalAdd = addOffset - 1;
        
     }
 
 
 }
+
+
+         
