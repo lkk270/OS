@@ -30,10 +30,13 @@ int totalAdd;
 std::ifstream collectInput(int argc, char *argv[]);
 std::vector<string> split(string s);
 void print1dVector(std::vector<string> arr);
+void firstPass(std:: ifstream input);
+void secondPass();
 
 int main ( int argc, char *argv[] )
 {   
-    collectInput(argc, argv);
+    firstPass(collectInput(argc, argv));
+	secondPass();
 
 }
 
@@ -144,4 +147,115 @@ void firstPass(std:: ifstream input){
 }
 
 
-         
+void secondPass(){
+    std::vector<string > useList1;
+    std::vector<string > defList1;
+    std::vector<string > instList1;
+    cout<<"Sumbol Table\n";
+
+    for (auto const& x : symTable){
+        std::cout << x.first  // string (key)
+                    << " = "
+                    << x.second // string's value 
+                    << std::endl ;
+    }
+    cout<<"\t\tMemory Map\n";
+
+    for(int i = 0; i < mod_count; i++){
+        printf("%s %d", "+", modBaseAdd[i]);
+        useList1 = useList[i];
+        defList1 = defList[i];
+        instList1 = instructions[i];
+        int instSize = instList1.size()/2;
+        std::vector<int> checkuse(useList1.size());
+        for (int q = 0; q < checkuse.size(); q++){
+            checkuse[q] = 1;
+        }
+    
+
+        std::vector<string> def(instSize);
+        for(int t = 0; t < defList1.size(); t++){
+            if (symTable.find(defList1[t])->second - modBaseAdd[i] < instSize){
+                def[symTable.find(defList1[t])->second - modBaseAdd[i]] = defList1[t];
+            }
+            else{
+                printf("%s %s %s", "Error: symbol ", defList1[t].c_str(), " exceeds the module size\n");
+             
+            }
+        }
+
+
+        for(int j = 0; j < instSize; j++){
+            if (!def[j].empty()){
+                printf("%d %s %s %s", j, ":", def[j].c_str(), "\t\n");
+            }
+            else{
+                printf("%d %s", j, ":\t\n");
+            } 
+            printf("%s %s %s %s", instList1[2 * j].c_str(), " ", instList1[2 * j + 1].c_str(), " ");
+            string temp1 = instList1[2 * j];
+            int temp2 = stoi(instList1[2 * j + 1]);
+        
+            if(temp1.compare("R") == 0){
+                int result = temp2 + modBaseAdd[i];
+                int check = (result % 100);
+                if (check <= totalAdd){
+                    printf("%s %d %s %d %s %d %s", "\t\t", temp2, "+", modBaseAdd[i], " =", result, "\n");
+                }
+                else{
+                    int temp = result - check;
+                    printf("%s %d %s", "\t\t\t", + temp, "\n");
+                    printf("%s", "Error: the relative address exceeds total address, initialize as zero\n");
+                }
+            }
+            
+            else if(temp1.compare("I") == 0){
+                printf("%s %d %s", "\t\t\t", + temp2, "\n");
+            }
+            else if(temp1.compare("E") == 0){
+
+                int temp3 = (temp2 % 10);
+                if (temp3 >= useList1.size()){
+                    printf("%s %d %s", "\t\t\t", + temp2, "\n");
+                    printf("%s", "Error: the address exceeds the uselist\n");
+                }
+                else if (symTable.count(useList1[temp3]) != 0){
+                    int checkNum = checkTable[useList1[temp3]];
+                    checkNum--;
+                    checkTable.erase(useList1[temp3]);
+                    checkTable.insert(pair<string, int>(useList1[temp3], 1)); 
+                    int temp4 = temp2 - temp3 + symTable.find(useList1[temp3])->second;
+                    int temp5 = checkuse[temp3];
+                    checkuse[temp3] = temp5 - 1;
+                    printf("%s %s %s %d %s", "->", useList1[temp3].c_str(), "\t\t", temp4, "\n");
+                }
+                else{
+                    int temp4 = temp2 - temp3;
+                    printf("%s %s %s %d %s", "->", useList1[temp3].c_str(), "\t\t", temp4, "\n");
+                    printf("%s %s %s", "Error: symbol ", useList1[temp3].c_str(), " hasn't been defined, initialize as zero\n");
+                    int temp5 = checkuse[temp3];
+                    checkuse[temp3] = temp5 - 1;
+                }
+            }
+            else if(temp1.compare("A") == 0){
+                int temp = temp2 % 1000;
+                if (temp > totalAdd){
+                    int temp3 = temp2 - temp;
+                    printf("%s %d %s", "\t\t\t", temp3, "\n");
+                    printf("%s", "Error: the absolute address exceeds the total address, initialize to zero\n");
+                }else{
+                    printf("%s %d %s", "\t\t\t", temp2, "\n");
+                }
+            }
+            
+            else{
+                printf("%s", "no such command\n");
+
+            }
+                  
+		}
+
+    }
+    
+
+}
